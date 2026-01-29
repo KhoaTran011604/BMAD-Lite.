@@ -1,0 +1,495 @@
+# BMAD-Lite Architecture Template
+# 100% BMAD-compliant structure with simplified elicitation
+template:
+  id: bmad-lite-architecture-v1
+  name: Architecture Document
+  version: 1.0
+  output:
+    format: markdown
+    filename: docs/architecture.md
+    title: "{{project_name}} Architecture Document"
+
+workflow:
+  mode: interactive
+  approach: pre-populate-and-validate
+  requires: docs/prd.md
+
+# ============================================================================
+# SECTIONS - 100% BMAD COMPLIANT STRUCTURE
+# ============================================================================
+sections:
+  # --------------------------------------------------------------------------
+  # Section 1: Introduction
+  # --------------------------------------------------------------------------
+  - id: introduction
+    title: Introduction
+    required: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Read PRD completely first
+      2. PRE-POPULATE introduction based on PRD
+      3. Check for starter templates
+
+      OUTPUT FORMAT:
+      ## Introduction
+
+      This document defines the technical architecture for {{project_name}}.
+
+      **PRD Reference:** docs/prd.md
+      **Starter Template:** {Yes/No - specify if yes}
+
+      ## Change Log
+      | Date | Version | Description | Author |
+      |------|---------|-------------|--------|
+      | {today} | 1.0 | Initial architecture | @planner |
+
+  # --------------------------------------------------------------------------
+  # Section 2: High Level Architecture
+  # --------------------------------------------------------------------------
+  - id: high-level-architecture
+    title: High Level Architecture
+    required: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE based on PRD Technical Assumptions
+      2. Present for validation
+
+      OUTPUT FORMAT:
+      ## High Level Architecture
+
+      ### Technical Summary
+      [Brief overview of architectural approach]
+
+      ### Architecture Style
+      {Monolith | Microservices | Serverless | Hybrid}
+
+      ### High Level Diagram
+      ```mermaid
+      graph TD
+          A[Client] --> B[API Gateway]
+          B --> C[Service Layer]
+          C --> D[Database]
+      ```
+
+      ### Key Architectural Patterns
+      - [Pattern 1]: [Purpose]
+      - [Pattern 2]: [Purpose]
+
+  # --------------------------------------------------------------------------
+  # Section 3: Tech Stack (CRITICAL - Single Source of Truth)
+  # --------------------------------------------------------------------------
+  - id: tech-stack
+    title: Tech Stack
+    required: true
+    elicit: true
+    critical: true  # SINGLE SOURCE OF TRUTH
+    instruction: |
+      CRITICAL: This is the DEFINITIVE technology selection.
+      All other documents reference these choices.
+      Pin specific versions (avoid "latest").
+
+      BMAD-LITE APPROACH:
+      1. Pre-populate from PRD Technical Assumptions
+      2. Check tech-preferences.md
+      3. Present table for validation
+      4. ALL choices must have RATIONALE
+
+      OUTPUT FORMAT:
+      ## Tech Stack
+
+      | Category | Technology | Version | Purpose | Rationale |
+      |----------|------------|---------|---------|-----------|
+      | Language | TypeScript | 5.3.x | Primary language | Type safety, tooling |
+      | Runtime | Node.js | 20.x LTS | Server runtime | Stability, ecosystem |
+      | Framework | {choice} | {version} | {purpose} | {why} |
+      | Database | {choice} | {version} | {purpose} | {why} |
+      | Testing | {choice} | {version} | {purpose} | {why} |
+      | ... | ... | ... | ... | ... |
+
+  # --------------------------------------------------------------------------
+  # Section 4: Data Models
+  # --------------------------------------------------------------------------
+  - id: data-models
+    title: Data Models
+    required: true
+    elicit: true
+    repeatable: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Identify entities from PRD requirements
+      2. PRE-POPULATE models with key attributes
+      3. Present for validation
+
+      OUTPUT FORMAT:
+      ## Data Models
+
+      ### {EntityName}
+      **Purpose:** {What this entity represents}
+
+      **Attributes:**
+      - id: string (primary key)
+      - {attribute}: {type} - {description}
+      - createdAt: timestamp
+      - updatedAt: timestamp
+
+      **Relationships:**
+      - {relationship description}
+
+      **TypeScript Interface:**
+      ```typescript
+      interface {EntityName} {
+        id: string;
+        // ... attributes
+      }
+      ```
+
+  # --------------------------------------------------------------------------
+  # Section 5: API Specification
+  # --------------------------------------------------------------------------
+  - id: api-spec
+    title: API Specification
+    required: true
+    condition: "project has API"
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Derive endpoints from PRD stories
+      2. PRE-POPULATE REST/GraphQL spec
+      3. Present for validation
+
+      OUTPUT FORMAT:
+      ## API Specification
+
+      ### API Style
+      {REST | GraphQL | tRPC | gRPC}
+
+      ### Base URL
+      `/api/v1`
+
+      ### Endpoints
+
+      #### {Resource}
+      | Method | Endpoint | Description | Auth |
+      |--------|----------|-------------|------|
+      | GET | /{resource} | List all | Yes |
+      | GET | /{resource}/:id | Get one | Yes |
+      | POST | /{resource} | Create | Yes |
+      | PUT | /{resource}/:id | Update | Yes |
+      | DELETE | /{resource}/:id | Delete | Yes |
+
+      ### Authentication
+      {JWT | Session | OAuth2 | API Key}
+
+  # --------------------------------------------------------------------------
+  # Section 6: Components
+  # --------------------------------------------------------------------------
+  - id: components
+    title: Components
+    required: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Identify components from architecture style
+      2. PRE-POPULATE component list
+      3. Present for validation
+
+      OUTPUT FORMAT:
+      ## Components
+
+      ### {ComponentName}
+      **Responsibility:** {What this component does}
+      **Dependencies:** {Other components it depends on}
+      **Interfaces:** {APIs it exposes}
+
+      ### Component Diagram
+      ```mermaid
+      graph LR
+          A[Component A] --> B[Component B]
+          B --> C[Database]
+      ```
+
+  # --------------------------------------------------------------------------
+  # Section 7: Frontend Architecture (Conditional)
+  # --------------------------------------------------------------------------
+  - id: frontend-architecture
+    title: Frontend Architecture
+    required: false
+    condition: "project has frontend"
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE based on tech stack
+      2. Present for validation
+
+      OUTPUT FORMAT:
+      ## Frontend Architecture
+
+      ### Component Architecture
+      [How components are organized]
+
+      ### State Management
+      {Redux | Zustand | Context | Other}
+      [How state is managed]
+
+      ### Routing
+      [Routing approach and structure]
+
+      ### Key Frontend Services
+      - API Client: {approach}
+      - Auth: {approach}
+      - Error Handling: {approach}
+
+  # --------------------------------------------------------------------------
+  # Section 8: Backend Architecture
+  # --------------------------------------------------------------------------
+  - id: backend-architecture
+    title: Backend Architecture
+    required: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE based on tech stack
+      2. Present for validation
+
+      OUTPUT FORMAT:
+      ## Backend Architecture
+
+      ### Service Architecture
+      [How services are organized]
+
+      ### Database Architecture
+      [Database design approach]
+
+      ### Authentication Architecture
+      [Auth flow and implementation]
+
+  # --------------------------------------------------------------------------
+  # Section 9: Database Schema
+  # --------------------------------------------------------------------------
+  - id: database-schema
+    title: Database Schema
+    required: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Derive from Data Models
+      2. PRE-POPULATE schema
+      3. Present for validation
+
+      OUTPUT FORMAT:
+      ## Database Schema
+
+      ### Tables/Collections
+
+      #### {table_name}
+      | Column | Type | Constraints | Description |
+      |--------|------|-------------|-------------|
+      | id | UUID | PK | Primary key |
+      | ... | ... | ... | ... |
+
+      ### Indexes
+      - {index description}
+
+      ### Migrations Strategy
+      [How schema changes will be managed]
+
+  # --------------------------------------------------------------------------
+  # Section 10: Source Tree
+  # --------------------------------------------------------------------------
+  - id: source-tree
+    title: Source Tree
+    required: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE based on tech stack and components
+      2. Present for validation
+
+      OUTPUT FORMAT:
+      ## Source Tree
+
+      ```
+      project-root/
+      ├── src/
+      │   ├── components/      # UI components
+      │   ├── services/        # Business logic
+      │   ├── models/          # Data models
+      │   ├── routes/          # API routes
+      │   └── utils/           # Utilities
+      ├── tests/
+      │   ├── unit/
+      │   └── integration/
+      ├── docs/
+      └── config/
+      ```
+
+  # --------------------------------------------------------------------------
+  # Section 11: Infrastructure & Deployment
+  # --------------------------------------------------------------------------
+  - id: infrastructure
+    title: Infrastructure and Deployment
+    required: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE based on PRD assumptions
+      2. Present for validation
+
+      OUTPUT FORMAT:
+      ## Infrastructure and Deployment
+
+      ### Cloud Provider
+      {AWS | GCP | Azure | Vercel | Other}
+
+      ### Deployment Strategy
+      [How deployments are handled]
+
+      ### Environments
+      - Development: {description}
+      - Staging: {description}
+      - Production: {description}
+
+      ### CI/CD
+      [CI/CD approach and tools]
+
+  # --------------------------------------------------------------------------
+  # Section 12: Coding Standards
+  # --------------------------------------------------------------------------
+  - id: coding-standards
+    title: Coding Standards
+    required: true
+    instruction: |
+      CRITICAL: These are directives for AI agents.
+      Keep MINIMAL but essential.
+
+      OUTPUT FORMAT:
+      ## Coding Standards
+
+      ### General Principles
+      - [Principle 1]
+      - [Principle 2]
+
+      ### Naming Conventions
+      - Files: {convention}
+      - Components: {convention}
+      - Functions: {convention}
+
+      ### Code Organization
+      - [Rule 1]
+      - [Rule 2]
+
+      ### Comments
+      - [When to comment]
+
+  # --------------------------------------------------------------------------
+  # Section 13: Test Strategy
+  # --------------------------------------------------------------------------
+  - id: test-strategy
+    title: Test Strategy
+    required: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Based on PRD Testing Requirements
+      2. PRE-POPULATE strategy
+      3. Present for validation
+
+      OUTPUT FORMAT:
+      ## Test Strategy
+
+      ### Testing Pyramid
+      - Unit Tests: {coverage target}
+      - Integration Tests: {coverage target}
+      - E2E Tests: {scope}
+
+      ### Test Organization
+      ```
+      tests/
+      ├── unit/
+      ├── integration/
+      └── e2e/
+      ```
+
+      ### Testing Tools
+      | Type | Tool | Purpose |
+      |------|------|---------|
+      | Unit | {tool} | {purpose} |
+      | Integration | {tool} | {purpose} |
+      | E2E | {tool} | {purpose} |
+
+  # --------------------------------------------------------------------------
+  # Section 14: Security
+  # --------------------------------------------------------------------------
+  - id: security
+    title: Security
+    required: true
+    elicit: true
+    critical: true
+    instruction: |
+      CRITICAL: Security must be addressed.
+
+      OUTPUT FORMAT:
+      ## Security
+
+      ### Authentication
+      [Auth approach and implementation]
+
+      ### Authorization
+      [Authz approach - RBAC, ABAC, etc.]
+
+      ### Input Validation
+      [How inputs are validated]
+
+      ### Secrets Management
+      [How secrets are stored and accessed]
+
+      ### API Security
+      - Rate Limiting: {approach}
+      - CORS: {configuration}
+      - HTTPS: Required
+
+  # --------------------------------------------------------------------------
+  # Section 15: Error Handling
+  # --------------------------------------------------------------------------
+  - id: error-handling
+    title: Error Handling
+    required: true
+    instruction: |
+      OUTPUT FORMAT:
+      ## Error Handling
+
+      ### Error Response Format
+      ```json
+      {
+        "error": {
+          "code": "ERROR_CODE",
+          "message": "Human readable message",
+          "details": {}
+        }
+      }
+      ```
+
+      ### Logging Strategy
+      [How errors are logged]
+
+      ### Error Categories
+      - Validation Errors: {handling}
+      - Business Errors: {handling}
+      - System Errors: {handling}
+
+  # --------------------------------------------------------------------------
+  # Section 16: Next Steps
+  # --------------------------------------------------------------------------
+  - id: next-steps
+    title: Next Steps
+    required: true
+    instruction: |
+      OUTPUT FORMAT:
+      ## Next Steps
+
+      Architecture complete. To begin development:
+
+      1. Run `@executor draft-story` to create first story
+      2. Stories will reference this architecture document
+      3. Track progress in `.ai/progress.md`

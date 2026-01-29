@@ -1,0 +1,268 @@
+# BMAD-Lite PRD Template
+# 100% BMAD-compliant structure with simplified elicitation
+template:
+  id: bmad-lite-prd-v1
+  name: Product Requirements Document
+  version: 1.0
+  output:
+    format: markdown
+    filename: docs/prd.md
+    title: "{{project_name}} Product Requirements Document (PRD)"
+
+workflow:
+  mode: interactive
+  approach: pre-populate-and-validate  # BMAD-Lite: less strict
+
+# ============================================================================
+# SECTIONS - 100% BMAD COMPLIANT STRUCTURE
+# ============================================================================
+sections:
+  # --------------------------------------------------------------------------
+  # Section 1: Goals and Background Context
+  # --------------------------------------------------------------------------
+  - id: goals-context
+    title: Goals and Background Context
+    required: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Check if Project Brief exists - use for context
+      2. PRE-POPULATE goals and background based on user's initial description
+      3. Present complete section for validation
+      4. Accept refinements
+
+      OUTPUT FORMAT:
+      ## Goals
+      - [Goal 1: One-line desired outcome]
+      - [Goal 2: One-line desired outcome]
+
+      ## Background Context
+      [1-2 paragraphs: what problem this solves, why it matters]
+
+      ## Change Log
+      | Date | Version | Description | Author |
+      |------|---------|-------------|--------|
+      | {today} | 1.0 | Initial draft | @planner |
+
+  # --------------------------------------------------------------------------
+  # Section 2: Requirements
+  # --------------------------------------------------------------------------
+  - id: requirements
+    title: Requirements
+    required: true
+    elicit: true  # CRITICAL section - needs user validation
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE functional and non-functional requirements
+      2. Present complete lists for validation
+      3. Focus questions on unclear requirements only
+
+      OUTPUT FORMAT:
+      ## Functional Requirements
+      - FR1: [Requirement statement]
+      - FR2: [Requirement statement]
+
+      ## Non-Functional Requirements
+      - NFR1: [Requirement statement]
+      - NFR2: [Requirement statement]
+
+    subsections:
+      - id: functional
+        title: Functional Requirements
+        type: numbered-list
+        prefix: FR
+        instruction: |
+          Core functionalities the system must provide.
+          Format: FR{n}: {clear requirement statement}
+
+      - id: non-functional
+        title: Non-Functional Requirements
+        type: numbered-list
+        prefix: NFR
+        instruction: |
+          Performance, security, scalability, etc.
+          Format: NFR{n}: {clear requirement statement}
+
+  # --------------------------------------------------------------------------
+  # Section 3: User Interface Design Goals (Conditional)
+  # --------------------------------------------------------------------------
+  - id: ui-goals
+    title: User Interface Design Goals
+    required: false
+    condition: "project has UI/UX requirements"
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE all UI goals based on project context
+      2. Present complete section for validation
+      3. Mark assumptions clearly
+
+      OUTPUT FORMAT:
+      ## Overall UX Vision
+      [2-3 sentences describing the intended user experience]
+
+      ## Key Interaction Paradigms
+      [How users will primarily interact with the system]
+
+      ## Core Screens and Views
+      - [Screen 1]: [Purpose]
+      - [Screen 2]: [Purpose]
+
+      ## Accessibility
+      [WCAG level or None]
+
+      ## Branding
+      [Known branding requirements or "TBD"]
+
+      ## Target Platforms
+      [Web Responsive | Mobile | Desktop | Cross-Platform]
+
+    choices:
+      accessibility: [None, WCAG AA, WCAG AAA]
+      platforms: [Web Responsive, Mobile Only, Desktop Only, Cross-Platform]
+
+  # --------------------------------------------------------------------------
+  # Section 4: Technical Assumptions (CRITICAL)
+  # --------------------------------------------------------------------------
+  - id: technical-assumptions
+    title: Technical Assumptions
+    required: true
+    elicit: true  # CRITICAL - guides Architect
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. Check for tech-preferences.md - use to pre-populate
+      2. PRE-POPULATE technical decisions with rationale
+      3. FOCUS elicitation on critical choices:
+         - Service Architecture (Monolith/Microservices/Serverless)
+         - Testing Requirements
+      4. Document ALL choices with rationale
+
+      OUTPUT FORMAT:
+      ## Repository Structure
+      {Monorepo | Polyrepo}
+      Rationale: [Why this choice]
+
+      ## Service Architecture
+      {Monolith | Microservices | Serverless}
+      Rationale: [Why this choice]
+
+      ## Testing Requirements
+      {Unit Only | Unit + Integration | Full Testing Pyramid}
+      Rationale: [Why this choice]
+
+      ## Additional Technical Assumptions
+      - [Assumption 1 with rationale]
+      - [Assumption 2 with rationale]
+
+    choices:
+      repository: [Monorepo, Polyrepo]
+      architecture: [Monolith, Microservices, Serverless]
+      testing: [Unit Only, Unit + Integration, Full Testing Pyramid]
+
+  # --------------------------------------------------------------------------
+  # Section 5: Epic List
+  # --------------------------------------------------------------------------
+  - id: epic-list
+    title: Epic List
+    required: true
+    elicit: true  # Get approval before details
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. PRE-POPULATE epic list based on requirements
+      2. Present for approval BEFORE epic details
+      3. Epics must be logically sequential
+
+      CRITICAL RULES:
+      - Epic 1: Foundation + initial functionality (health check, basic setup)
+      - Each epic delivers deployable, testable value
+      - Minimize epic count (explain rationale)
+      - Cross-cutting concerns flow THROUGH epics, not at end
+
+      OUTPUT FORMAT:
+      ## Epic List
+
+      **Epic 1: {Title}**
+      {One sentence goal statement}
+
+      **Epic 2: {Title}**
+      {One sentence goal statement}
+
+      [Await user approval before proceeding to Epic Details]
+
+  # --------------------------------------------------------------------------
+  # Section 6: Epic Details (Repeatable)
+  # --------------------------------------------------------------------------
+  - id: epic-details
+    title: "Epic {n}: {title}"
+    required: true
+    repeatable: true
+    elicit: true
+    instruction: |
+      BMAD-LITE APPROACH:
+      1. After Epic List approved, detail each epic
+      2. PRE-POPULATE stories and AC
+      3. Present complete epic for validation
+
+      STORY RULES:
+      - Stories MUST be sequential within epic
+      - Each story = vertical slice with complete functionality
+      - Size for AI agent: 2-4 hours of focused work
+      - No story depends on later stories
+
+      OUTPUT FORMAT:
+      ## Epic {n}: {Title}
+
+      **Goal:** {2-3 sentences describing objective and value}
+
+      ### Story {n}.1: {Title}
+      **As a** {user type},
+      **I want** {action},
+      **so that** {benefit}.
+
+      **Acceptance Criteria:**
+      1. Given {context}, When {action}, Then {expected}
+      2. Given {context}, When {action}, Then {expected}
+
+      ### Story {n}.2: {Title}
+      [Same format...]
+
+    story_template: |
+      As a {{user_type}},
+      I want {{action}},
+      so that {{benefit}}.
+
+    acceptance_criteria:
+      type: numbered-list
+      format: "Given {context}, When {action}, Then {expected}"
+
+  # --------------------------------------------------------------------------
+  # Section 7: Checklist Results (Optional)
+  # --------------------------------------------------------------------------
+  - id: checklist-results
+    title: Checklist Results
+    required: false
+    instruction: |
+      BMAD-LITE APPROACH:
+      Optional - run planning-checklist if needed for complex projects.
+
+      OUTPUT FORMAT:
+      ## Checklist Results
+      [Results from planning-checklist.md execution]
+      [Or "Skipped - simple project"]
+
+  # --------------------------------------------------------------------------
+  # Section 8: Next Steps
+  # --------------------------------------------------------------------------
+  - id: next-steps
+    title: Next Steps
+    required: true
+    instruction: |
+      Provide prompts to continue workflow.
+
+      OUTPUT FORMAT:
+      ## Next Steps
+
+      ### Create Architecture
+      Run `@planner create-architecture` with this PRD to create the technical architecture.
+
+      ### Create UI Spec (if applicable)
+      [Prompt for UX work if project has UI]
