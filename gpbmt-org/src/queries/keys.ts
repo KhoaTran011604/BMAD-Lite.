@@ -17,6 +17,14 @@ export interface ParishFilters {
   isActive?: boolean;
 }
 
+export interface ParishionerFilters {
+  search?: string;
+  parish?: string;
+  gender?: string;
+  page?: number;
+  limit?: number;
+}
+
 /**
  * Centralized query keys for all domains
  */
@@ -55,6 +63,18 @@ export const queryKeys = {
       [...queryKeys.parishes.lists(), filters] as const,
     details: () => [...queryKeys.parishes.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.parishes.details(), id] as const,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Parishioners
+  // ---------------------------------------------------------------------------
+  parishioners: {
+    all: ['parishioners'] as const,
+    lists: () => [...queryKeys.parishioners.all, 'list'] as const,
+    list: (filters?: ParishionerFilters) =>
+      [...queryKeys.parishioners.lists(), filters] as const,
+    details: () => [...queryKeys.parishioners.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.parishioners.details(), id] as const,
   },
 
   // ---------------------------------------------------------------------------

@@ -9,6 +9,17 @@ export enum UserRole {
   PARISH_SECRETARY = 'PARISH_SECRETARY',
 }
 
+export enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
+
+export enum AuditAction {
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+}
+
 // Role Interface
 export interface IRole {
   _id: Types.ObjectId;
@@ -54,6 +65,43 @@ export interface IUser {
 }
 
 export interface IUserDocument extends IUser, Document {
+  _id: Types.ObjectId;
+}
+
+// Parishioner Interface
+export interface IParishioner {
+  _id: Types.ObjectId;
+  parish: Types.ObjectId | IParish;
+  fullName: string;
+  baptismName?: string;
+  dateOfBirth?: Date;
+  gender?: Gender;
+  phone?: string;
+  address?: string;
+  familyHead?: Types.ObjectId | IParishioner;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IParishionerDocument extends IParishioner, Document {
+  _id: Types.ObjectId;
+}
+
+// Audit Log Interface
+export interface IAuditLog {
+  _id: Types.ObjectId;
+  user: Types.ObjectId | IUser;
+  action: AuditAction;
+  entityType: string;
+  entityId: Types.ObjectId;
+  oldValue?: Record<string, unknown>;
+  newValue?: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: Date;
+}
+
+export interface IAuditLogDocument extends IAuditLog, Document {
   _id: Types.ObjectId;
 }
 

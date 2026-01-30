@@ -12,6 +12,7 @@ import { PERMISSIONS } from '@/lib/auth/permissions';
 import { connectToDatabase } from '@/lib/db/connection';
 import Parish from '@/lib/db/models/parish.model';
 import User from '@/lib/db/models/user.model';
+import Parishioner from '@/lib/db/models/parishioner.model';
 import {
   updateParishSchema,
   type UpdateParishInput,
@@ -284,21 +285,20 @@ export const DELETE = withPermission(
         );
       }
 
-      // TODO: Add parishioner check when Parishioner model is implemented (Story 2.2)
-      // const Parishioner = (await import('@/lib/db/models/parishioner.model')).default;
-      // const parishionerCount = await Parishioner.countDocuments({ parish: parishId });
-      // if (parishionerCount > 0) {
-      //   return NextResponse.json(
-      //     {
-      //       success: false,
-      //       error: {
-      //         code: 'HAS_PARISHIONERS',
-      //         message: `Không thể xóa giáo xứ vì có ${parishionerCount} giáo dân thuộc giáo xứ này`,
-      //       },
-      //     },
-      //     { status: 400 }
-      //   );
-      // }
+      // Check for parishioners (Story 2.2)
+      const parishionerCount = await Parishioner.countDocuments({ parish: parishId });
+      if (parishionerCount > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'HAS_PARISHIONERS',
+              message: `Không thể xóa giáo xứ vì có ${parishionerCount} giáo dân thuộc giáo xứ này`,
+            },
+          },
+          { status: 400 }
+        );
+      }
 
       // Delete parish
       await Parish.findByIdAndDelete(parishId);

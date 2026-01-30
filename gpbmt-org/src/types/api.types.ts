@@ -169,3 +169,40 @@ export interface ParishFullResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * Parishioner response from API
+ */
+export interface ParishionerResponse {
+  id: string;
+  parish: {
+    id: string;
+    name: string;
+  } | null;
+  fullName: string;
+  baptismName: string | null;
+  dateOfBirth: string | null;
+  gender: string | null;
+  phone: string | null;
+  address: string | null;
+  familyHead: {
+    id: string;
+    fullName: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Parishioners list response
+ */
+export interface ParishionersListResponse {
+  parishioners: ParishionerResponse[];
+}
+
+/**
+ * Single parishioner response
+ */
+export interface ParishionerDetailResponse {
+  parishioner: ParishionerResponse;
+}

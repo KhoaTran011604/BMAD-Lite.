@@ -117,7 +117,7 @@ async function seed(): Promise<void> {
 
     // Seed Super Admin User
     console.log('Seeding super admin user...');
-    const passwordHash = await bcrypt.hash('Admin@123', 12);
+    const passwordHash = await bcrypt.hash('admin@gpbmt.org', 12);
     const superAdmin = await User.create({
       email: 'admin@gpbmt.org',
       passwordHash,
@@ -136,7 +136,7 @@ async function seed(): Promise<void> {
     console.log(`  - 1 super admin user`);
     console.log('\nSuper Admin Credentials:');
     console.log('  Email: admin@gpbmt.org');
-    console.log('  Password: Admin@123');
+    console.log('  Password: admin@gpbmt.org');
     console.log('  (Password change required on first login)');
   } catch (error) {
     console.error('Seed failed:', error);
