@@ -9,7 +9,7 @@
 ## Technology Stack Table
 | Category | Technology | Version | Purpose | Rationale |
 |----------|------------|---------|---------|-----------|
-| Framework | Next.js | 15.x | Fullstack React framework | App Router, Server Components, API Routes in one |
+| Framework | Next.js | 16.x | Fullstack React framework | App Router, Server Components, proxy.ts (Node.js runtime) |
 | Language | TypeScript | 5.x | Primary language | Type safety, better DX, fewer runtime errors |
 | Runtime | Node.js | 20.x LTS | Server runtime | Stable LTS, required by Next.js |
 | Database | MongoDB | 7.x | Document database | Flexible schema, good for hierarchical data |

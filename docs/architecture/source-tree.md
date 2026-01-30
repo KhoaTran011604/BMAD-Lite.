@@ -117,82 +117,70 @@ gpbmt-org/
 │   │   │   ├── parishes-table.tsx
 │   │   │   └── ...
 │   │   └── shared/
+│   │       ├── generic-form.tsx      # Wrapper for all forms
+│   │       ├── generic-table.tsx     # Wrapper for all tables
 │   │       ├── entity-select.tsx
 │   │       ├── file-upload.tsx
 │   │       ├── date-range-picker.tsx
 │   │       └── status-badge.tsx
 │   │
 │   ├── queries/                      # React Query hooks (domain-based)
+│   │   ├── keys.ts                   # CENTRALIZED query keys for ALL domains
 │   │   ├── transactions/
-│   │   │   ├── keys.ts               # Query keys factory
 │   │   │   ├── queries.ts            # useTransactions, useTransaction
 │   │   │   ├── mutations.ts          # useCreateTransaction, useApproveTransaction
 │   │   │   └── index.ts              # Barrel export
 │   │   ├── funds/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts            # useFunds, useFund
 │   │   │   ├── mutations.ts          # useCreateFund, useUpdateFund
 │   │   │   └── index.ts
 │   │   ├── categories/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── bank-accounts/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── entities/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── parishes/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── parishioners/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── employees/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── payrolls/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── assets/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── rental-contracts/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── users/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   ├── mutations.ts
 │   │   │   └── index.ts
 │   │   ├── audit-logs/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   └── index.ts
 │   │   ├── dashboard/
-│   │   │   ├── keys.ts
 │   │   │   ├── queries.ts
 │   │   │   └── index.ts
 │   │   └── auth/
-│   │       ├── keys.ts
 │   │       ├── queries.ts            # useCurrentUser
 │   │       ├── mutations.ts          # useLogin, useLogout
 │   │       └── index.ts
@@ -227,7 +215,9 @@ gpbmt-org/
 │   │   │   └── ...
 │   │   ├── auth/
 │   │   │   ├── auth.config.ts        # NextAuth config
-│   │   │   ├── auth.ts               # Auth utilities
+│   │   │   ├── auth.ts               # NextAuth instance exports
+│   │   │   ├── credentials.ts        # verifyCredentials + SessionUser
+│   │   │   ├── index.ts              # Auth module barrel export
 │   │   │   └── rbac.ts               # RBAC middleware
 │   │   ├── validations/
 │   │   │   ├── transaction.schema.ts
@@ -236,6 +226,7 @@ gpbmt-org/
 │   │   ├── api/
 │   │   │   ├── client.ts             # API client for React Query
 │   │   │   ├── endpoints.ts          # API endpoint constants
+│   │   │   ├── validate.ts           # BE validation middleware (Yup)
 │   │   │   └── types.ts              # API request/response types
 │   │   └── utils/
 │   │       ├── api-response.ts
@@ -247,10 +238,12 @@ gpbmt-org/
 │   │   ├── auth-provider.tsx
 │   │   └── theme-provider.tsx
 │   │
-│   └── types/
-│       ├── index.ts
-│       ├── api.types.ts
-│       └── models.types.ts
+│   ├── types/
+│   │   ├── index.ts
+│   │   ├── api.types.ts
+│   │   └── models.types.ts
+│   │
+│   └── proxy.ts                      # Next.js 16 route protection (Node.js runtime)
 │
 ├── public/
 │   └── ...

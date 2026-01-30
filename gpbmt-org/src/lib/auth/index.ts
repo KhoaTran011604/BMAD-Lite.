@@ -1,3 +1,4 @@
 export { auth, signIn, signOut, handlers } from './auth';
 export { authConfig } from './auth.config';
-export type { SessionUser } from './auth';
+export { verifyCredentials } from './credentials';
+export type { SessionUser } from './credentials';

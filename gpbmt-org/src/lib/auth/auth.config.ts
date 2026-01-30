@@ -1,10 +1,12 @@
 import type { NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { verifyCredentials } from './auth';
+import { verifyCredentials } from './credentials';
 
 /**
  * NextAuth.js configuration
  * Uses Credentials provider with JWT strategy
+ * Note: In Next.js 16, proxy.ts runs on Node.js runtime (not Edge)
+ * so mongoose/bcrypt imports are supported
  */
 export const authConfig: NextAuthConfig = {
   providers: [

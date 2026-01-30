@@ -11,3 +11,4 @@ No - New project built from scratch
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
 | 2026-01-30 | 1.0 | Initial architecture | @planner |
+| 2026-01-30 | 1.1 | Add GenericForm/GenericTable wrappers, BE validation, centralized query keys, generic hooks with callbacks | @user |

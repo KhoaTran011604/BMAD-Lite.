@@ -39,7 +39,9 @@ graph TD
 ## Architectural and Design Patterns
 - **Repository Pattern:** Mongoose models encapsulate data access logic - _Rationale:_ Clean separation, easier testing
 - **Service Layer:** Business logic in dedicated service modules - _Rationale:_ Reusable logic, single responsibility
-- **Middleware Chain:** Auth → RBAC → Handler - _Rationale:_ Consistent security enforcement
-- **DTO Pattern:** Yup schemas for validation at API boundaries - _Rationale:_ Type-safe data transfer
+- **Middleware Chain:** Auth → RBAC → Validation → Handler - _Rationale:_ Consistent security enforcement
+- **DTO Pattern:** Yup schemas for validation at both FE and BE boundaries - _Rationale:_ Type-safe data transfer, shared schemas
 - **Observer Pattern:** Mongoose middleware for audit logging - _Rationale:_ Automatic, non-intrusive logging
-- **Query Keys Factory:** Centralized query key management per domain - _Rationale:_ Consistent cache invalidation, type-safe keys
+- **Centralized Query Keys:** Single `keys.ts` file for ALL domains - _Rationale:_ Single source of truth, easy cache invalidation
+- **Generic Form/Table Wrappers:** Consistent handling of forms and tables - _Rationale:_ DRY, unified UX, centralized validation
+- **Mutation Callbacks:** Mutations receive callbacks, no inline side effects - _Rationale:_ Separation of concerns, testable hooks

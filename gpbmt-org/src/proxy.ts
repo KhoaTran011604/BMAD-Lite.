@@ -3,7 +3,18 @@ import { authConfig } from '@/lib/auth/auth.config';
 
 const { auth } = NextAuth(authConfig);
 
-export default auth;
+/**
+ * Next.js 16 Proxy
+ *
+ * In Next.js 16, 'middleware.ts' is deprecated and replaced with 'proxy.ts'.
+ * The proxy runs on Node.js runtime (not Edge), allowing use of:
+ * - Native Node.js modules (mongoose, bcrypt, etc.)
+ * - Full database connections
+ * - Complex authentication logic
+ *
+ * Export 'proxy' instead of 'default' or 'middleware'.
+ */
+export const proxy = auth;
 
 export const config = {
   matcher: [

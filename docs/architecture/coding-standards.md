@@ -24,6 +24,9 @@
 - **Explicit return types:** All functions must have explicit return types
 - **No hardcoded values:** Use constants or environment variables
 - **Error boundaries:** Wrap page components in error boundaries
-- **Form validation:** Always validate on both client (Yup) and server (Yup)
+- **Form validation:** Always validate on both client (Yup) and server (Yup) using shared schemas
 - **Optimistic updates:** Use TanStack Query mutations with optimistic updates for better UX
-- **Query key factories:** Always use keys.ts for query keys to ensure consistent cache invalidation
+- **Centralized query keys:** Always use `queries/keys.ts` for query keys - NEVER create per-domain keys
+- **Use GenericForm/GenericTable:** Always use wrapper components instead of building forms/tables from scratch
+- **Mutation callbacks:** Never show toast/messages inside mutation hooks - use callbacks from component
+- **Generic hooks:** All query/mutation hooks must use TypeScript generics for proper type inference
