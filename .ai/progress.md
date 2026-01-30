@@ -20,9 +20,10 @@ Updated automatically as stories progress.
 
 | Epic | Title | Status | Stories | Completed | Progress |
 |------|-------|--------|---------|-----------|----------|
-| 1 | Foundation & Authentication | In Progress | 4+ | 4 | ~80% |
+| 1 | Foundation & Authentication | Done | 4 | 4 | 100% |
+| 2 | Parish & Parishioner Management | In Progress | 2+ | 1 | ~50% |
 
-**Overall Progress:** 4 stories completed
+**Overall Progress:** 5 stories completed
 
 ---
 
@@ -31,9 +32,9 @@ Updated automatically as stories progress.
 | Field | Value |
 |-------|-------|
 | **Active Story** | None - Ready for next story |
-| **Last Completed** | 1.4 - User Management |
+| **Last Completed** | 2.1 - Parish Management |
 | **Status** | Done |
-| **Tasks Progress** | 9/9 tasks |
+| **Tasks Progress** | 7/7 tasks |
 | **Assigned** | @executor |
 
 ---
@@ -48,7 +49,13 @@ Updated automatically as stories progress.
 | 1.2 | Authentication System | Done | All | NextAuth.js + JWT |
 | 1.3 | RBAC Implementation | Done | 7/7 | 68 tests passing |
 | 1.4 | User Management | Done | 9/9 | 91 tests total |
-| 1.5 | TBD | Pending | - | Next story to draft |
+
+### Epic 2: Parish & Parishioner Management
+
+| Story | Title | Status | Tasks | Notes |
+|-------|-------|--------|-------|-------|
+| 2.1 | Parish Management | Done | 7/7 | 114 tests, reviewed PASS |
+| 2.2 | Parishioner Management | Pending | - | Next story to draft |
 
 ---
 
@@ -56,11 +63,11 @@ Updated automatically as stories progress.
 
 | Date | Story | Action | Notes |
 |------|-------|--------|-------|
+| 2026-01-30 | 2.1 | Reviewed PASS | Parish Management complete, 114 tests |
 | 2026-01-30 | 1.4 | Completed | User Management + 23 new tests |
 | 2026-01-30 | 1.4 | Implemented | All 9 tasks complete, 91 total tests |
 | 2026-01-30 | 1.3 | Completed | RBAC + 68 unit tests |
 | 2026-01-30 | 1.2 | Completed | Auth system done |
-| 2026-01-30 | 1.1 | Completed | Project setup done |
 
 ---
 
@@ -74,10 +81,11 @@ Updated automatically as stories progress.
 
 ## Notes
 
-- Epic 1 focuses on foundation: project setup, auth, and RBAC
+- Epic 1 complete: project setup, auth, RBAC, user management
+- Epic 2 in progress: Parish management done, Parishioner next
 - Using Next.js 16 with proxy.ts (replaces middleware.ts)
-- Test infrastructure set up with Vitest + React Testing Library
-- 68 unit tests now covering auth/permissions layer
+- Test infrastructure: Vitest + React Testing Library
+- 114 total tests passing across all features
 
 ---
 

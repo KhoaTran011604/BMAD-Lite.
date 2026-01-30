@@ -147,3 +147,25 @@ export interface RolesListResponse {
 export interface ParishesListResponse {
   parishes: ParishResponse[];
 }
+
+/**
+ * Single parish response
+ */
+export interface ParishDetailResponse {
+  parish: ParishResponse;
+}
+
+/**
+ * Full parish response with all fields
+ */
+export interface ParishFullResponse {
+  id: string;
+  name: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  foundingDate: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
