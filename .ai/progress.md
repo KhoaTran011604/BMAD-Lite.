@@ -21,9 +21,9 @@ Updated automatically as stories progress.
 | Epic | Title | Status | Stories | Completed | Progress |
 |------|-------|--------|---------|-----------|----------|
 | 1 | Foundation & Authentication | Done | 4 | 4 | 100% |
-| 2 | Parish & Parishioner Management | In Progress | 2+ | 1 | ~50% |
+| 2 | Parish & Parishioner Management | Done | 2 | 2 | 100% |
 
-**Overall Progress:** 5 stories completed
+**Overall Progress:** 6 stories completed
 
 ---
 
@@ -31,10 +31,10 @@ Updated automatically as stories progress.
 
 | Field | Value |
 |-------|-------|
-| **Active Story** | None - Ready for next story |
-| **Last Completed** | 2.1 - Parish Management |
+| **Active Story** | None - Ready for Epic 3 |
+| **Last Completed** | 2.2 - Parishioner Management |
 | **Status** | Done |
-| **Tasks Progress** | 7/7 tasks |
+| **Tasks Progress** | 9/9 tasks |
 | **Assigned** | @executor |
 
 ---
@@ -55,7 +55,7 @@ Updated automatically as stories progress.
 | Story | Title | Status | Tasks | Notes |
 |-------|-------|--------|-------|-------|
 | 2.1 | Parish Management | Done | 7/7 | 114 tests, reviewed PASS |
-| 2.2 | Parishioner Management | Pending | - | Next story to draft |
+| 2.2 | Parishioner Management | Done | 9/9 | 147 tests, reviewed PASS |
 
 ---
 
@@ -63,6 +63,7 @@ Updated automatically as stories progress.
 
 | Date | Story | Action | Notes |
 |------|-------|--------|-------|
+| 2026-01-30 | 2.2 | Reviewed PASS | Parishioner Management complete, 147 tests |
 | 2026-01-30 | 2.1 | Reviewed PASS | Parish Management complete, 114 tests |
 | 2026-01-30 | 1.4 | Completed | User Management + 23 new tests |
 | 2026-01-30 | 1.4 | Implemented | All 9 tasks complete, 91 total tests |
@@ -82,10 +83,11 @@ Updated automatically as stories progress.
 ## Notes
 
 - Epic 1 complete: project setup, auth, RBAC, user management
-- Epic 2 in progress: Parish management done, Parishioner next
+- Epic 2 complete: Parish management + Parishioner management
 - Using Next.js 16 with proxy.ts (replaces middleware.ts)
 - Test infrastructure: Vitest + React Testing Library
-- 114 total tests passing across all features
+- 147 total tests passing across all features
+- Ready for Epic 3: Financial Management
 
 ---
 
