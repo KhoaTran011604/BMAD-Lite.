@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { Toaster } from 'sonner';
 import { AuthProvider } from '@/providers/auth-provider';
+import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
 
 const geistSans = Geist({
@@ -29,7 +31,12 @@ export default function RootLayout({ children }: RootLayoutProps): ReactNode {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            {children}
+            <Toaster position="top-right" richColors closeButton />
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

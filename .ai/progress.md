@@ -9,10 +9,10 @@ Updated automatically as stories progress.
 
 | Field | Value |
 |-------|-------|
-| **Project** | {project_name} |
-| **Started** | {start_date} |
-| **Last Updated** | {last_update} |
-| **Status** | Planning / In Progress / Complete |
+| **Project** | GPBMT.ORG - Buon Ma Thuot Diocese Management System |
+| **Started** | 2026-01-30 |
+| **Last Updated** | 2026-01-30 |
+| **Status** | In Progress |
 
 ---
 
@@ -20,11 +20,9 @@ Updated automatically as stories progress.
 
 | Epic | Title | Status | Stories | Completed | Progress |
 |------|-------|--------|---------|-----------|----------|
-| 1 | {title} | {status} | {total} | {done} | {%} |
-| 2 | {title} | {status} | {total} | {done} | {%} |
-| 3 | {title} | {status} | {total} | {done} | {%} |
+| 1 | Foundation & Authentication | In Progress | 4+ | 4 | ~80% |
 
-**Overall Progress:** {total_completed}/{total_stories} stories ({overall_percent}%)
+**Overall Progress:** 4 stories completed
 
 ---
 
@@ -32,30 +30,25 @@ Updated automatically as stories progress.
 
 | Field | Value |
 |-------|-------|
-| **Active Story** | {epic}.{story} - {title} |
-| **Status** | {Draft/Approved/InProgress/Review} |
-| **Tasks Progress** | {completed}/{total} tasks |
+| **Active Story** | None - Ready for next story |
+| **Last Completed** | 1.4 - User Management |
+| **Status** | Done |
+| **Tasks Progress** | 9/9 tasks |
 | **Assigned** | @executor |
 
 ---
 
 ## Story Status Matrix
 
-### Epic 1: {title}
+### Epic 1: Foundation & Authentication
 
 | Story | Title | Status | Tasks | Notes |
 |-------|-------|--------|-------|-------|
-| 1.1 | {title} | Done | 4/4 | |
-| 1.2 | {title} | Done | 3/3 | |
-| 1.3 | {title} | InProgress | 2/4 | Current focus |
-| 1.4 | {title} | Pending | 0/5 | |
-
-### Epic 2: {title}
-
-| Story | Title | Status | Tasks | Notes |
-|-------|-------|--------|-------|-------|
-| 2.1 | {title} | Pending | 0/4 | |
-| 2.2 | {title} | Pending | 0/3 | |
+| 1.1 | Project Setup & Database Schema | Done | All | Foundation complete |
+| 1.2 | Authentication System | Done | All | NextAuth.js + JWT |
+| 1.3 | RBAC Implementation | Done | 7/7 | 68 tests passing |
+| 1.4 | User Management | Done | 9/9 | 91 tests total |
+| 1.5 | TBD | Pending | - | Next story to draft |
 
 ---
 
@@ -63,10 +56,11 @@ Updated automatically as stories progress.
 
 | Date | Story | Action | Notes |
 |------|-------|--------|-------|
-| {date} | 1.3 | Started | Beginning authentication |
-| {date} | 1.2 | Completed | All tests pass |
-| {date} | 1.2 | Review | PASS - minor concerns noted |
-| {date} | 1.1 | Completed | Foundation setup done |
+| 2026-01-30 | 1.4 | Completed | User Management + 23 new tests |
+| 2026-01-30 | 1.4 | Implemented | All 9 tasks complete, 91 total tests |
+| 2026-01-30 | 1.3 | Completed | RBAC + 68 unit tests |
+| 2026-01-30 | 1.2 | Completed | Auth system done |
+| 2026-01-30 | 1.1 | Completed | Project setup done |
 
 ---
 
@@ -80,41 +74,18 @@ Updated automatically as stories progress.
 
 ## Notes
 
-- {Any project-wide notes}
-- {Decisions made during development}
-- {Important reminders}
+- Epic 1 focuses on foundation: project setup, auth, and RBAC
+- Using Next.js 16 with proxy.ts (replaces middleware.ts)
+- Test infrastructure set up with Vitest + React Testing Library
+- 68 unit tests now covering auth/permissions layer
 
 ---
 
 ## Quick Commands
 
 ```
-/status              # Refresh this view
-/status story 1.3    # View specific story
-/execute develop     # Continue current story
-/execute draft       # Draft next story
-/review story 1.3    # Review completed story
+/bmad-status         # Refresh this view
+/bmad-execute draft  # Draft next story
+/bmad-execute develop # Continue current story
+/bmad-review         # Review completed story
 ```
-
----
-
-<!--
-TEMPLATE INSTRUCTIONS:
-
-This file is created when first story is drafted.
-Updated by @executor after each story status change.
-
-Status values:
-- Pending: Not started
-- Draft: Story drafted, awaiting approval
-- Approved: Ready for implementation
-- InProgress: Currently being implemented
-- Review: Awaiting review
-- Done: Complete
-
-To update manually:
-1. Change story status in matrix
-2. Update Epic Progress percentages
-3. Add entry to Recent Activity
-4. Update Current Focus section
--->
