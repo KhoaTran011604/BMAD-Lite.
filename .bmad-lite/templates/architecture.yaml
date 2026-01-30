@@ -1,9 +1,9 @@
 # BMAD-Lite Architecture Template
 # 100% BMAD-compliant structure with simplified elicitation
 template:
-  id: bmad-lite-architecture-v1
+  id: architecture-template-v2
   name: Architecture Document
-  version: 1.0
+  version: 2.0
   output:
     format: markdown
     filename: docs/architecture.md
@@ -12,14 +12,17 @@ template:
 workflow:
   mode: interactive
   approach: pre-populate-and-validate
+  elicitation: advanced-elicitation
   requires: docs/prd.md
 
 # ============================================================================
 # SECTIONS - 100% BMAD COMPLIANT STRUCTURE
+# Section titles MUST match exactly for proper sharding
 # ============================================================================
 sections:
   # --------------------------------------------------------------------------
   # Section 1: Introduction
+  # OUTPUT H2: ## Introduction
   # --------------------------------------------------------------------------
   - id: introduction
     title: Introduction
@@ -30,21 +33,35 @@ sections:
       2. PRE-POPULATE introduction based on PRD
       3. Check for starter templates
 
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Introduction
 
       This document defines the technical architecture for {{project_name}}.
 
       **PRD Reference:** docs/prd.md
-      **Starter Template:** {Yes/No - specify if yes}
 
-      ## Change Log
+      ### Starter Template or Existing Project
+      {Yes/No - specify if yes, or N/A}
+
+      ### Change Log
       | Date | Version | Description | Author |
       |------|---------|-------------|--------|
       | {today} | 1.0 | Initial architecture | @planner |
 
+    subsections:
+      - id: intro-content
+        title: null
+      - id: starter-template
+        title: Starter Template or Existing Project
+        elicit: true
+      - id: changelog
+        title: Change Log
+        type: table
+        columns: [Date, Version, Description, Author]
+
   # --------------------------------------------------------------------------
   # Section 2: High Level Architecture
+  # OUTPUT H2: ## High Level Architecture
   # --------------------------------------------------------------------------
   - id: high-level-architecture
     title: High Level Architecture
@@ -55,16 +72,16 @@ sections:
       1. PRE-POPULATE based on PRD Technical Assumptions
       2. Present for validation
 
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## High Level Architecture
 
       ### Technical Summary
-      [Brief overview of architectural approach]
+      [Brief 3-5 sentence overview of architectural approach]
 
-      ### Architecture Style
-      {Monolith | Microservices | Serverless | Hybrid}
+      ### High Level Overview
+      [Describe main architectural style, repository structure, service architecture]
 
-      ### High Level Diagram
+      ### High Level Project Diagram
       ```mermaid
       graph TD
           A[Client] --> B[API Gateway]
@@ -72,18 +89,31 @@ sections:
           C --> D[Database]
       ```
 
-      ### Key Architectural Patterns
-      - [Pattern 1]: [Purpose]
-      - [Pattern 2]: [Purpose]
+      ### Architectural and Design Patterns
+      - **Pattern 1:** [Description] - _Rationale:_ [Why]
+      - **Pattern 2:** [Description] - _Rationale:_ [Why]
+
+    subsections:
+      - id: technical-summary
+        title: Technical Summary
+      - id: high-level-overview
+        title: High Level Overview
+      - id: project-diagram
+        title: High Level Project Diagram
+        type: mermaid
+        mermaid_type: graph
+      - id: architectural-patterns
+        title: Architectural and Design Patterns
 
   # --------------------------------------------------------------------------
   # Section 3: Tech Stack (CRITICAL - Single Source of Truth)
+  # OUTPUT H2: ## Tech Stack
   # --------------------------------------------------------------------------
   - id: tech-stack
     title: Tech Stack
     required: true
     elicit: true
-    critical: true  # SINGLE SOURCE OF TRUTH
+    critical: true
     instruction: |
       CRITICAL: This is the DEFINITIVE technology selection.
       All other documents reference these choices.
@@ -95,9 +125,15 @@ sections:
       3. Present table for validation
       4. ALL choices must have RATIONALE
 
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Tech Stack
 
+      ### Cloud Infrastructure
+      - **Provider:** {cloud_provider}
+      - **Key Services:** {services}
+      - **Deployment Regions:** {regions}
+
+      ### Technology Stack Table
       | Category | Technology | Version | Purpose | Rationale |
       |----------|------------|---------|---------|-----------|
       | Language | TypeScript | 5.3.x | Primary language | Type safety, tooling |
@@ -105,10 +141,18 @@ sections:
       | Framework | {choice} | {version} | {purpose} | {why} |
       | Database | {choice} | {version} | {purpose} | {why} |
       | Testing | {choice} | {version} | {purpose} | {why} |
-      | ... | ... | ... | ... | ... |
+
+    subsections:
+      - id: cloud-infrastructure
+        title: Cloud Infrastructure
+      - id: technology-stack-table
+        title: Technology Stack Table
+        type: table
+        columns: [Category, Technology, Version, Purpose, Rationale]
 
   # --------------------------------------------------------------------------
   # Section 4: Data Models
+  # OUTPUT H2: ## Data Models
   # --------------------------------------------------------------------------
   - id: data-models
     title: Data Models
@@ -121,13 +165,13 @@ sections:
       2. PRE-POPULATE models with key attributes
       3. Present for validation
 
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Data Models
 
       ### {EntityName}
       **Purpose:** {What this entity represents}
 
-      **Attributes:**
+      **Key Attributes:**
       - id: string (primary key)
       - {attribute}: {type} - {description}
       - createdAt: timestamp
@@ -136,36 +180,137 @@ sections:
       **Relationships:**
       - {relationship description}
 
-      **TypeScript Interface:**
+      ### TypeScript Interfaces
       ```typescript
-      interface {EntityName} {
+      interface EntityName {
         id: string;
         // ... attributes
       }
       ```
 
+    subsections:
+      - id: model
+        title: "{model_name}"
+        repeatable: true
+
   # --------------------------------------------------------------------------
-  # Section 5: API Specification
+  # Section 5: Components
+  # OUTPUT H2: ## Components
   # --------------------------------------------------------------------------
-  - id: api-spec
-    title: API Specification
+  - id: components
+    title: Components
     required: true
-    condition: "project has API"
     elicit: true
     instruction: |
       BMAD-LITE APPROACH:
-      1. Derive endpoints from PRD stories
-      2. PRE-POPULATE REST/GraphQL spec
+      1. Identify components from architecture style
+      2. PRE-POPULATE component list
       3. Present for validation
 
-      OUTPUT FORMAT:
-      ## API Specification
+      OUTPUT FORMAT (EXACT):
+      ## Components
+
+      ### {ComponentName}
+      **Responsibility:** {What this component does}
+      **Key Interfaces:** {APIs it exposes}
+      **Dependencies:** {Other components it depends on}
+      **Technology Stack:** {Specific tech for this component}
+
+      ### Component Diagrams
+      ```mermaid
+      graph LR
+          A[Component A] --> B[Component B]
+          B --> C[Database]
+      ```
+
+    subsections:
+      - id: component-list
+        title: "{component_name}"
+        repeatable: true
+      - id: component-diagrams
+        title: Component Diagrams
+        type: mermaid
+
+  # --------------------------------------------------------------------------
+  # Section 6: External APIs (Conditional)
+  # OUTPUT H2: ## External APIs
+  # --------------------------------------------------------------------------
+  - id: external-apis
+    title: External APIs
+    required: false
+    condition: "Project requires external API integrations"
+    elicit: true
+    repeatable: true
+    instruction: |
+      OUTPUT FORMAT (EXACT):
+      ## External APIs
+
+      ### {API Name} API
+      - **Purpose:** {why needed}
+      - **Documentation:** {url}
+      - **Base URL(s):** {url}
+      - **Authentication:** {method}
+      - **Rate Limits:** {limits}
+
+      **Key Endpoints Used:**
+      - `GET /endpoint` - {purpose}
+      - `POST /endpoint` - {purpose}
+
+      **Integration Notes:** {considerations}
+
+      [If no external APIs: "No external API integrations required."]
+
+  # --------------------------------------------------------------------------
+  # Section 7: Core Workflows
+  # OUTPUT H2: ## Core Workflows
+  # --------------------------------------------------------------------------
+  - id: core-workflows
+    title: Core Workflows
+    required: true
+    elicit: true
+    instruction: |
+      OUTPUT FORMAT (EXACT):
+      ## Core Workflows
+
+      ### {Workflow Name}
+      [Description of the workflow]
+
+      ```mermaid
+      sequenceDiagram
+          participant User
+          participant API
+          participant Service
+          participant DB
+
+          User->>API: Request
+          API->>Service: Process
+          Service->>DB: Query
+          DB-->>Service: Result
+          Service-->>API: Response
+          API-->>User: Result
+      ```
+
+  # --------------------------------------------------------------------------
+  # Section 8: REST API Spec (Conditional)
+  # OUTPUT H2: ## REST API Spec
+  # --------------------------------------------------------------------------
+  - id: rest-api-spec
+    title: REST API Spec
+    required: false
+    condition: "Project includes REST API"
+    elicit: true
+    instruction: |
+      OUTPUT FORMAT (EXACT):
+      ## REST API Spec
 
       ### API Style
       {REST | GraphQL | tRPC | gRPC}
 
       ### Base URL
       `/api/v1`
+
+      ### Authentication
+      {JWT | Session | OAuth2 | API Key}
 
       ### Endpoints
 
@@ -178,106 +323,24 @@ sections:
       | PUT | /{resource}/:id | Update | Yes |
       | DELETE | /{resource}/:id | Delete | Yes |
 
-      ### Authentication
-      {JWT | Session | OAuth2 | API Key}
-
-  # --------------------------------------------------------------------------
-  # Section 6: Components
-  # --------------------------------------------------------------------------
-  - id: components
-    title: Components
-    required: true
-    elicit: true
-    instruction: |
-      BMAD-LITE APPROACH:
-      1. Identify components from architecture style
-      2. PRE-POPULATE component list
-      3. Present for validation
-
-      OUTPUT FORMAT:
-      ## Components
-
-      ### {ComponentName}
-      **Responsibility:** {What this component does}
-      **Dependencies:** {Other components it depends on}
-      **Interfaces:** {APIs it exposes}
-
-      ### Component Diagram
-      ```mermaid
-      graph LR
-          A[Component A] --> B[Component B]
-          B --> C[Database]
+      ### OpenAPI Specification
+      ```yaml
+      openapi: 3.0.0
+      info:
+        title: {API Title}
+        version: 1.0.0
       ```
 
   # --------------------------------------------------------------------------
-  # Section 7: Frontend Architecture (Conditional)
-  # --------------------------------------------------------------------------
-  - id: frontend-architecture
-    title: Frontend Architecture
-    required: false
-    condition: "project has frontend"
-    elicit: true
-    instruction: |
-      BMAD-LITE APPROACH:
-      1. PRE-POPULATE based on tech stack
-      2. Present for validation
-
-      OUTPUT FORMAT:
-      ## Frontend Architecture
-
-      ### Component Architecture
-      [How components are organized]
-
-      ### State Management
-      {Redux | Zustand | Context | Other}
-      [How state is managed]
-
-      ### Routing
-      [Routing approach and structure]
-
-      ### Key Frontend Services
-      - API Client: {approach}
-      - Auth: {approach}
-      - Error Handling: {approach}
-
-  # --------------------------------------------------------------------------
-  # Section 8: Backend Architecture
-  # --------------------------------------------------------------------------
-  - id: backend-architecture
-    title: Backend Architecture
-    required: true
-    elicit: true
-    instruction: |
-      BMAD-LITE APPROACH:
-      1. PRE-POPULATE based on tech stack
-      2. Present for validation
-
-      OUTPUT FORMAT:
-      ## Backend Architecture
-
-      ### Service Architecture
-      [How services are organized]
-
-      ### Database Architecture
-      [Database design approach]
-
-      ### Authentication Architecture
-      [Auth flow and implementation]
-
-  # --------------------------------------------------------------------------
   # Section 9: Database Schema
+  # OUTPUT H2: ## Database Schema
   # --------------------------------------------------------------------------
   - id: database-schema
     title: Database Schema
     required: true
     elicit: true
     instruction: |
-      BMAD-LITE APPROACH:
-      1. Derive from Data Models
-      2. PRE-POPULATE schema
-      3. Present for validation
-
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Database Schema
 
       ### Tables/Collections
@@ -291,22 +354,26 @@ sections:
       ### Indexes
       - {index description}
 
+      ### Entity Relationship Diagram
+      ```mermaid
+      erDiagram
+          User ||--o{ Order : places
+          Order ||--|{ OrderItem : contains
+      ```
+
       ### Migrations Strategy
       [How schema changes will be managed]
 
   # --------------------------------------------------------------------------
   # Section 10: Source Tree
+  # OUTPUT H2: ## Source Tree
   # --------------------------------------------------------------------------
   - id: source-tree
     title: Source Tree
     required: true
     elicit: true
     instruction: |
-      BMAD-LITE APPROACH:
-      1. PRE-POPULATE based on tech stack and components
-      2. Present for validation
-
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Source Tree
 
       ```
@@ -325,101 +392,209 @@ sections:
       ```
 
   # --------------------------------------------------------------------------
-  # Section 11: Infrastructure & Deployment
+  # Section 11: Infrastructure and Deployment
+  # OUTPUT H2: ## Infrastructure and Deployment
   # --------------------------------------------------------------------------
-  - id: infrastructure
+  - id: infrastructure-deployment
     title: Infrastructure and Deployment
     required: true
     elicit: true
     instruction: |
-      BMAD-LITE APPROACH:
-      1. PRE-POPULATE based on PRD assumptions
-      2. Present for validation
-
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Infrastructure and Deployment
 
-      ### Cloud Provider
-      {AWS | GCP | Azure | Vercel | Other}
+      ### Infrastructure as Code
+      - **Tool:** {Terraform | CDK | Pulumi}
+      - **Location:** `/infrastructure`
+      - **Approach:** {approach}
 
       ### Deployment Strategy
-      [How deployments are handled]
+      - **Strategy:** {Blue-Green | Rolling | Canary}
+      - **CI/CD Platform:** {GitHub Actions | GitLab CI | etc.}
+      - **Pipeline Configuration:** `.github/workflows/`
 
       ### Environments
-      - Development: {description}
-      - Staging: {description}
-      - Production: {description}
+      - **Development:** {description}
+      - **Staging:** {description}
+      - **Production:** {description}
 
-      ### CI/CD
-      [CI/CD approach and tools]
+      ### Environment Promotion Flow
+      ```
+      Development → Staging → Production
+      ```
+
+      ### Rollback Strategy
+      - **Primary Method:** {method}
+      - **Trigger Conditions:** {triggers}
+      - **Recovery Time Objective:** {RTO}
+
+    subsections:
+      - id: infrastructure-as-code
+        title: Infrastructure as Code
+      - id: deployment-strategy
+        title: Deployment Strategy
+      - id: environments
+        title: Environments
+        repeatable: true
+      - id: promotion-flow
+        title: Environment Promotion Flow
+      - id: rollback-strategy
+        title: Rollback Strategy
 
   # --------------------------------------------------------------------------
-  # Section 12: Coding Standards
+  # Section 12: Error Handling Strategy
+  # OUTPUT H2: ## Error Handling Strategy
+  # --------------------------------------------------------------------------
+  - id: error-handling-strategy
+    title: Error Handling Strategy
+    required: true
+    elicit: true
+    instruction: |
+      OUTPUT FORMAT (EXACT):
+      ## Error Handling Strategy
+
+      ### General Approach
+      - **Error Model:** {model}
+      - **Exception Hierarchy:** {structure}
+      - **Error Propagation:** {rules}
+
+      ### Logging Standards
+      - **Library:** {library}
+      - **Format:** {JSON structured | text}
+      - **Levels:** {DEBUG, INFO, WARN, ERROR}
+      - **Required Context:** Correlation ID, Service, User
+
+      ### Error Handling Patterns
+
+      #### External API Errors
+      - **Retry Policy:** {strategy}
+      - **Circuit Breaker:** {config}
+      - **Timeout Configuration:** {settings}
+
+      #### Business Logic Errors
+      - **Custom Exceptions:** {types}
+      - **User-Facing Errors:** {format}
+      - **Error Codes:** {system}
+
+      #### Data Consistency
+      - **Transaction Strategy:** {approach}
+      - **Idempotency:** {approach}
+
+    subsections:
+      - id: general-approach
+        title: General Approach
+      - id: logging-standards
+        title: Logging Standards
+      - id: error-patterns
+        title: Error Handling Patterns
+
+  # --------------------------------------------------------------------------
+  # Section 13: Coding Standards
+  # OUTPUT H2: ## Coding Standards
   # --------------------------------------------------------------------------
   - id: coding-standards
     title: Coding Standards
     required: true
+    elicit: true
     instruction: |
       CRITICAL: These are directives for AI agents.
       Keep MINIMAL but essential.
 
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Coding Standards
 
-      ### General Principles
-      - [Principle 1]
-      - [Principle 2]
+      ### Core Standards
+      - **Languages & Runtimes:** {versions}
+      - **Style & Linting:** ESLint + Prettier
+      - **Test Organization:** {convention}
 
       ### Naming Conventions
-      - Files: {convention}
-      - Components: {convention}
-      - Functions: {convention}
+      | Element | Convention | Example |
+      |---------|------------|---------|
+      | Files | kebab-case | user-service.ts |
+      | Components | PascalCase | UserProfile.tsx |
+      | Functions | camelCase | getUserById |
 
-      ### Code Organization
-      - [Rule 1]
-      - [Rule 2]
+      ### Critical Rules
+      - **Rule 1:** {description}
+      - **Rule 2:** {description}
 
-      ### Comments
-      - [When to comment]
+      ### Language-Specific Guidelines
+      [Only if critical for preventing AI mistakes]
+
+    subsections:
+      - id: core-standards
+        title: Core Standards
+      - id: naming-conventions
+        title: Naming Conventions
+        type: table
+        columns: [Element, Convention, Example]
+      - id: critical-rules
+        title: Critical Rules
+        repeatable: true
+      - id: language-specifics
+        title: Language-Specific Guidelines
+        condition: "Critical language-specific rules needed"
 
   # --------------------------------------------------------------------------
-  # Section 13: Test Strategy
+  # Section 14: Test Strategy and Standards
+  # OUTPUT H2: ## Test Strategy and Standards
   # --------------------------------------------------------------------------
   - id: test-strategy
-    title: Test Strategy
+    title: Test Strategy and Standards
     required: true
     elicit: true
     instruction: |
-      BMAD-LITE APPROACH:
-      1. Based on PRD Testing Requirements
-      2. PRE-POPULATE strategy
-      3. Present for validation
+      OUTPUT FORMAT (EXACT):
+      ## Test Strategy and Standards
 
-      OUTPUT FORMAT:
-      ## Test Strategy
+      ### Testing Philosophy
+      - **Approach:** {TDD | Test-After | BDD}
+      - **Coverage Goals:** {targets}
+      - **Test Pyramid:** {distribution}
 
-      ### Testing Pyramid
-      - Unit Tests: {coverage target}
-      - Integration Tests: {coverage target}
-      - E2E Tests: {scope}
+      ### Test Types and Organization
 
-      ### Test Organization
-      ```
-      tests/
-      ├── unit/
-      ├── integration/
-      └── e2e/
-      ```
+      #### Unit Tests
+      - **Framework:** {framework}
+      - **File Convention:** `*.test.ts` / `*.spec.ts`
+      - **Location:** alongside source / `tests/unit/`
+      - **Mocking Library:** {library}
+      - **Coverage Requirement:** {percentage}
 
-      ### Testing Tools
-      | Type | Tool | Purpose |
-      |------|------|---------|
-      | Unit | {tool} | {purpose} |
-      | Integration | {tool} | {purpose} |
-      | E2E | {tool} | {purpose} |
+      #### Integration Tests
+      - **Scope:** {what's covered}
+      - **Location:** `tests/integration/`
+      - **Test Infrastructure:** {approach}
+
+      #### End-to-End Tests
+      - **Framework:** {framework}
+      - **Scope:** {critical paths}
+      - **Environment:** {where run}
+
+      ### Test Data Management
+      - **Strategy:** {approach}
+      - **Fixtures:** {location}
+      - **Cleanup:** {strategy}
+
+      ### Continuous Testing
+      - **CI Integration:** {stages}
+      - **Performance Tests:** {approach}
+      - **Security Tests:** {approach}
+
+    subsections:
+      - id: testing-philosophy
+        title: Testing Philosophy
+      - id: test-types
+        title: Test Types and Organization
+      - id: test-data-management
+        title: Test Data Management
+      - id: continuous-testing
+        title: Continuous Testing
 
   # --------------------------------------------------------------------------
-  # Section 14: Security
+  # Section 15: Security
+  # OUTPUT H2: ## Security
   # --------------------------------------------------------------------------
   - id: security
     title: Security
@@ -429,67 +604,91 @@ sections:
     instruction: |
       CRITICAL: Security must be addressed.
 
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Security
 
-      ### Authentication
-      [Auth approach and implementation]
-
-      ### Authorization
-      [Authz approach - RBAC, ABAC, etc.]
-
       ### Input Validation
-      [How inputs are validated]
+      - **Validation Library:** {library}
+      - **Validation Location:** API boundary
+      - **Required Rules:** whitelist approach, sanitize inputs
+
+      ### Authentication & Authorization
+      - **Auth Method:** {JWT | Session | OAuth2}
+      - **Session Management:** {approach}
+      - **Required Patterns:** {patterns}
 
       ### Secrets Management
-      [How secrets are stored and accessed]
+      - **Development:** .env files (git-ignored)
+      - **Production:** {secrets service}
+      - **Code Requirements:** NEVER hardcode secrets
 
       ### API Security
-      - Rate Limiting: {approach}
-      - CORS: {configuration}
-      - HTTPS: Required
+      - **Rate Limiting:** {implementation}
+      - **CORS Policy:** {configuration}
+      - **Security Headers:** {required headers}
+      - **HTTPS Enforcement:** Required
+
+      ### Data Protection
+      - **Encryption at Rest:** {approach}
+      - **Encryption in Transit:** TLS 1.3
+      - **PII Handling:** {rules}
+      - **Logging Restrictions:** {what not to log}
+
+      ### Dependency Security
+      - **Scanning Tool:** {tool}
+      - **Update Policy:** {frequency}
+
+      ### Security Testing
+      - **SAST Tool:** {tool}
+      - **DAST Tool:** {tool}
+
+    subsections:
+      - id: input-validation
+        title: Input Validation
+      - id: auth-authorization
+        title: Authentication & Authorization
+      - id: secrets-management
+        title: Secrets Management
+      - id: api-security
+        title: API Security
+      - id: data-protection
+        title: Data Protection
+      - id: dependency-security
+        title: Dependency Security
+      - id: security-testing
+        title: Security Testing
 
   # --------------------------------------------------------------------------
-  # Section 15: Error Handling
+  # Section 16: Checklist Results Report
+  # OUTPUT H2: ## Checklist Results Report
   # --------------------------------------------------------------------------
-  - id: error-handling
-    title: Error Handling
-    required: true
+  - id: checklist-results
+    title: Checklist Results Report
+    required: false
     instruction: |
-      OUTPUT FORMAT:
-      ## Error Handling
+      OUTPUT FORMAT (EXACT):
+      ## Checklist Results Report
 
-      ### Error Response Format
-      ```json
-      {
-        "error": {
-          "code": "ERROR_CODE",
-          "message": "Human readable message",
-          "details": {}
-        }
-      }
-      ```
-
-      ### Logging Strategy
-      [How errors are logged]
-
-      ### Error Categories
-      - Validation Errors: {handling}
-      - Business Errors: {handling}
-      - System Errors: {handling}
+      [Results from architect-checklist.md execution]
+      [Or "Skipped"]
 
   # --------------------------------------------------------------------------
-  # Section 16: Next Steps
+  # Section 17: Next Steps
+  # OUTPUT H2: ## Next Steps
   # --------------------------------------------------------------------------
   - id: next-steps
     title: Next Steps
     required: true
     instruction: |
-      OUTPUT FORMAT:
+      OUTPUT FORMAT (EXACT):
       ## Next Steps
 
       Architecture complete. To begin development:
 
+      ### Frontend Architecture (if applicable)
+      [If project has UI: prompt for frontend architecture]
+
+      ### Development
       1. Run `@executor draft-story` to create first story
       2. Stories will reference this architecture document
       3. Track progress in `.ai/progress.md`

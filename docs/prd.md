@@ -1,778 +1,441 @@
-# Diocese Management System (GPBMT.ORG)
+# Buon Ma Thuot Diocese Management System (GPBMT.ORG) - Product Requirements Document (PRD)
 
-# Product Requirements Document (PRD)
+## Goals and Background Context
 
----
+### Goals
+- Comprehensively digitize financial, HR, and administrative management processes for Buon Ma Thuot Diocese
+- Provide RBAC authorization system with 5 user roles aligned with diocese organizational structure
+- Ensure transparency and traceability for all financial transactions through audit logging
+- Automate approval workflows for transactions, payroll, and rental contracts
 
-## Goals
+### Background Context
+Buon Ma Thuot Diocese currently manages multiple parishes, parishioners, and financial funds using manual methods. Digitization will increase transparency, reduce errors, and support internal auditing. The system needs to manage 11 fund types in 3 groups (CBCV, Diocese Office, Internal), integrate HR module with payroll that auto-generates transactions, and administration module with asset rental contracts.
 
-- **G1:** Fully digitize financial management processes for Buon Ma Thuot Diocese, ensuring transparency and auditability
-- **G2:** Standardize income/expense approval workflows with clear role-based access control (RBAC)
-- **G3:** Unified management of parishes, parishioners, personnel, and assets on a single platform
-- **G4:** Automate payroll processing and rental payment collection workflows
+### Change Log
+| Date | Version | Description | Author |
+|------|---------|-------------|--------|
+| 2026-01-30 | 1.0 | Initial draft based on brainstorm | @planner |
 
-## Background Context
+## Requirements
 
-Buon Ma Thuot Diocese currently manages 11 different fund types, ranging from funds transferred to the Vietnam Bishops' Conference to internal funds and pastoral revenue sources. Current processes are mostly manual, making it difficult to track balances, prone to errors, and lacking transparency in income/expense approvals.
+### Functional
+- FR1: CRUD management for parishes and parishioners with hierarchical relationships
+- FR2: Manage 11 fund types with balances auto-calculated from transactions
+- FR3: Manage income/expense categories with 2 system categories that cannot be deleted (Employee Salary, Asset Rental Income)
+- FR4: Manage bank accounts with auto-updated balances
+- FR5: Manage sender/receiver entities with searchable select component and quick-add feature
+- FR6: CRUD transactions (Income/Expense/Adjustment) with 2-level approval workflow
+- FR7: Upload and preview images/documents for transactions
+- FR8: Advanced transaction filtering with multiple criteria and date range
+- FR9: Manage employees with labor contracts (fixed-term/indefinite)
+- FR10: Monthly payroll that auto-generates expense transactions upon approval
+- FR11: Manage assets with image uploads
+- FR12: Rental contracts that auto-generate income transactions upon payment
+- FR13: RBAC authorization system with 5 roles
+- FR14: Audit log recording all CRUD operations on important entities
 
-This system will address these issues by providing a centralized web platform, allowing different roles (from Super Admin to Parish Secretary) to perform their work within their authorized scope, with complete audit logs for auditing purposes.
-
-## Change Log
-
-| Date       | Version | Description                      | Author   |
-| ---------- | ------- | -------------------------------- | -------- |
-| 2026-01-29 | 1.0     | Initial draft from brainstorming | @planner |
-
----
-
-## Functional Requirements
-
-### Parish & Parishioner Module
-
-- **FR1:** CRUD parishes with basic information (name, address, contact)
-- **FR2:** CRUD parishioners with constraint: each parishioner must belong to a parish
-
-### Finance Module
-
-- **FR3:** CRUD fund categories (11 funds in 3 groups: VBCC, Diocese Office, Internal) with balance display using formula: Balance = Total Income - Total Expense + Adjustment Increase - Adjustment Decrease
-- **FR4:** CRUD income/expense categories with 2 system categories that cannot be deleted: "Employee Salary" and "Asset Rental Income"
-- **FR5:** CRUD bank accounts with balance display using similar formula
-- **FR6:** CRUD sender/receiver entities with searchable select component and quick-add feature
-- **FR7:** CRUD transactions with 3 types: Income, Expense, Adjustment
-- **FR8:** Upload and preview images/documents for transactions
-- **FR9:** Advanced transaction filtering: multiple criteria, date range
-- **FR10:** Approval workflow: only "super admin" or "manager priest" can approve/unapprove
-- **FR11:** Transactions can only be edited/deleted when pending; read-only after approval
-- **FR12:** Validation: bank transfer transactions must have account info for both parties
-
-### HR & Payroll Module
-
-- **FR13:** CRUD personnel with basic info and employment contracts (fixed-term/indefinite, base salary)
-- **FR14:** Generate monthly payroll (only 1 per month) for personnel with active contracts
-- **FR15:** Payroll displays: name, base salary, allowances, attendance bonus, advances, net pay
-- **FR16:** Payroll before approval: editable; after approval: read-only and auto-creates salary expense transactions
-- **FR17:** Auto-add personnel to "Sender/Receiver" list when approving payroll (if not exists)
-
-### Administration Module
-
-- **FR18:** CRUD assets with info: type, area, value, status, images
-- **FR19:** CRUD rental contracts with full tenant info (name, phone, address, email, bank account)
-- **FR20:** Contracts can only edit: duration and rental amount
-- **FR21:** Rental payments auto-create income transactions, linked to selected fund
-- **FR22:** Validation: bank transfer payments must have complete account info for both parties
-
-### System Module
-
-- **FR23:** CRUD users with assignment to 1 of 5 roles: Super Admin, Manager Priest, Parish Priest, Accountant, Parish Secretary
-- **FR24:** Assign users to specific parish (applies to Parish Priest, Parish Secretary)
-- **FR25:** Activate/Deactivate accounts, Reset password
-- **FR26:** Sidebar menu show/hide based on role; API endpoints check permissions
-- **FR27:** Redirect to Dashboard + error message when accessing unauthorized URLs
-- **FR28:** Audit log auto-records: Create/Update/Delete on important entities
-- **FR29:** Audit log stores: old_value, new_value, IP, User Agent, timestamp
-- **FR30:** Audit log: list view, filter by time/user/action/module, search
-
----
-
-## Non-Functional Requirements
-
-- **NFR1:** Responsive web design, optimized for desktop and tablet
-- **NFR2:** Page load time < 3 seconds for lists with < 1000 records
-- **NFR3:** Support minimum 50 concurrent users
-- **NFR4:** Daily data backup, 30-day retention
-- **NFR5:** HTTPS for all traffic
-- **NFR6:** Session timeout: 8 hours for web
-- **NFR7:** Password policy: minimum 8 characters, alphanumeric
-- **NFR8:** Audit log retention: minimum 2 years
-- **NFR9:** Full Vietnamese Unicode support (names, addresses, notes)
-- **NFR10:** Export reports to Excel/PDF (post-MVP phase)
-
----
+### Non Functional
+- NFR1: System must be responsive, working well on desktop and tablet
+- NFR2: API response time < 500ms for standard CRUD operations
+- NFR3: Support minimum 50 concurrent users
+- NFR4: Data must be backed up daily
+- NFR5: Encrypt sensitive data (passwords, bank account information)
+- NFR6: System availability of 99.5%
 
 ## User Interface Design Goals
 
 ### Overall UX Vision
-
-Professional admin dashboard, easy to use for non-IT users (Parish Priests, Secretaries). Prioritize clarity, minimal steps, with intuitive data entry forms.
+Professional admin interface, easy to use for non-technical users (parish priests, secretaries). Prioritize clarity and simplicity with forms organized logically following business workflows.
 
 ### Key Interaction Paradigms
-
-- Sidebar navigation with role-based menu visibility
-- CRUD operations via modal or drawer (no page navigation)
-- Tables with pagination, sorting, filtering (TanStack Table)
-- Quick-add component for lookup fields (sender/receiver)
-- Approval workflow with clear Approve/Reject buttons
+- Sidebar navigation with menu auto-showing/hiding based on user permissions
+- Table-based data display with pagination, search, and advanced filtering
+- Modal forms for quick-add and inline editing
+- Tab-based views for transaction types (Income/Expense/Adjustment)
+- Approval workflow with clear status indicators
 
 ### Core Screens and Views
-
-- **Dashboard:** Role-based overview statistics
-- **Parishes:** List and parish details
-- **Parishioners:** List, add/edit parishioners
-- **Transactions:** 3 tabs (Income/Expense/Adjustment), filters, approval actions
-- **Funds:** List with real-time balance
-- **Bank Accounts:** List with balance
-- **Personnel:** List, employment contracts
-- **Payroll:** Monthly list, details, approval
-- **Assets:** List with images
-- **Rental Contracts:** List, payments
-- **Users:** User management, role assignment
-- **Audit Log:** Log list with filters
+- Dashboard: Role-based overview statistics
+- Parishes & Parishioners: List view with search and filter
+- Finance: Tab view (Funds, Categories, Bank Accounts, Entities, Transactions)
+- HR: List view with monthly payroll
+- Administration: Tab view (Assets, Contracts)
+- System: User management, Audit log
 
 ### Accessibility
-
-WCAG AA (basic - contrast, keyboard navigation)
+WCAG AA
 
 ### Branding
+Clean, professional with color tones appropriate for religious organization (neutral, calm colors)
 
-Buon Ma Thuot Diocese logo, color scheme following guidelines (if available) or muted tones appropriate for religious organization
-
-### Target Platforms
-
-Web Responsive (Desktop-first, Tablet support)
-
----
+### Target Device and Platforms
+Web Responsive (Desktop-first, tablet support)
 
 ## Technical Assumptions
 
 ### Repository Structure
-
-**Monorepo**
-Rationale: Next.js fullstack with shared types/validation. Monorepo simplifies dependency management and synchronized deployment.
+Monorepo
+Rationale: Single codebase with Next.js fullstack simplifies deployment, enables shared types, and reduces complexity
 
 ### Service Architecture
-
-**Monolith (Next.js Fullstack)**
-Rationale: MVP with small team, clear domain boundaries. Next.js API routes provide simple backend without separate service.
+Monolith
+Rationale: Medium-scale system (~50 users), no need for microservices complexity. Next.js fullstack with API routes provides clean architecture that's easy to develop, deploy, and maintain
 
 ### Testing Requirements
+Unit + Integration
+Rationale: Unit tests for critical business logic (balance calculations, approval workflows). Integration tests for API routes and database operations
 
-**Unit + Integration**
-Rationale: Unit tests for business logic (balance calculation, approval workflow), Integration tests for API routes. E2E tests can be added post-MVP.
-
-### Tech Stack
-
-| Layer             | Technology               | Rationale                                     |
-| ----------------- | ------------------------ | --------------------------------------------- |
-| **Framework**     | Next.js 15+ (App Router) | Fullstack React, SSR/SSG, API routes          |
-| **Language**      | TypeScript               | Type safety, better DX                        |
-| **Styling**       | Tailwind CSS             | Utility-first, rapid UI development           |
-| **UI Components** | shadcn/ui                | High-quality, customizable components         |
-| **Database**      | MongoDB                  | Flexible schema, good for document-based data |
-| **ODM**           | Mongoose                 | Schema validation, middleware support         |
-| **Forms**         | React Hook Form + Yup    | Performant forms, schema validation           |
-| **Tables**        | TanStack React Table     | Powerful, headless table component            |
-| **Data Fetching** | TanStack React Query     | Caching, background updates, optimistic UI    |
-| **Auth**          | NextAuth.js (Auth.js)    | Built-in Next.js integration, JWT             |
-| **File Upload**   | Local storage (MVP)      | Simple for MVP, migrate to S3 later           |
-
-### Additional Technical Assumptions
-
-- **Node.js:** v20.x LTS
-- **Package Manager:** pnpm
-- **Deployment:** Vercel or Docker on VPS
-- **Environment:** Development, Staging, Production
-
----
+### Additional Technical Assumptions and Requests
+- **Framework:** Next.js 15+ (App Router, Server Components, API Routes)
+- **Language:** TypeScript 5.x
+- **Styling:** Tailwind CSS
+- **UI Components:** shadcn/ui
+- **Database:** MongoDB with Mongoose ODM
+- **File Storage:** Cloudinary
+- **Form Management:** React Hook Form + Yup validation
+- **Data Tables:** TanStack React Table
+- **Server State:** TanStack React Query
+- **Authentication:** NextAuth.js with JWT
+- **Deployment:** Vercel (recommended) or Docker
 
 ## Epic List
 
-> **CRITICAL:** Please review and approve this Epic list before I detail each story.
-
 **Epic 1: Foundation & Authentication**
-Project setup, database schemas, authentication system, and RBAC implementation.
+Set up project infrastructure, authentication, and basic RBAC authorization
 
-**Epic 2: Master Data Management**
-CRUD for basic catalogs: Parishes, Parishioners, Fund Categories, Income/Expense Categories, Bank Accounts, Sender/Receiver Entities.
+**Epic 2: Parish & Parishioner Management**
+Module for managing parishes and parishioners with hierarchical relationships
 
-**Epic 3: Transaction Management (Core)**
-Core feature: CRUD transactions (income/expense/adjustment), approval workflow, fund and account balance calculation.
+**Epic 3: Finance - Master Data**
+Finance module master data (Funds, Categories, Bank Accounts, Entities)
 
-**Epic 4: HR & Payroll**
-Personnel management, employment contracts, payroll generation and approval, auto-create salary expense transactions.
+**Epic 4: Finance - Transaction Management**
+Transaction management module with approval workflow and file upload integration
 
-**Epic 5: Asset & Rental Management**
-Asset management, rental contracts, rental payments creating income transactions.
+**Epic 5: HR & Payroll**
+HR and payroll module with auto-generated transactions
 
-**Epic 6: Audit Log & Dashboard**
-Automatic audit logging, log viewing and search, basic statistics dashboard.
+**Epic 6: Administration - Assets & Contracts**
+Administration module (Assets, Rental Contracts) with transaction integration
 
----
+**Epic 7: System - Audit & Dashboard**
+Audit logging and statistics dashboard
 
-## Epic Details
+## Epic 1: Foundation & Authentication
 
----
+**Goal:** Set up project structure, database schema, JWT authentication, and RBAC authorization with 5 roles. This is the foundation for the entire system.
 
-### Epic 1: Foundation & Authentication
-
-**Goal:** Establish project foundation with working authentication, user management, and role-based access control. This epic delivers a deployable application with login capability and basic admin functions.
-
-#### Story 1.1: Project Setup & Configuration
-
+### Story 1.1: Project Setup & Database Schema
 **As a** developer,
-**I want** a properly configured Next.js project with all dependencies,
+**I want** a properly configured Next.js 15+ fullstack project with MongoDB,
 **so that** I can start building features on a solid foundation.
 
 **Acceptance Criteria:**
+1. Given Next.js project setup, When I run `npm install && npm run dev`, Then the application starts successfully
+2. Given MongoDB connection, When the app starts, Then database connection is established
+3. Given Mongoose schemas, When I run seed script, Then core collections (User, Role, Parish) are created
+4. Given ESLint, Prettier, and TypeScript config, When I run lint, Then code style is enforced consistently
+5. Given shadcn/ui setup, When I import components, Then they render with Tailwind styling
 
-1. Given a new project, When initialized, Then Next.js 15+ with App Router is configured
-2. Given the project, When dependencies are installed, Then TypeScript, Tailwind CSS, shadcn/ui, MongoDB/Mongoose, React Hook Form, Yup, TanStack Table, TanStack Query are available
-3. Given the project structure, When reviewed, Then it follows Next.js App Router conventions with `/app`, `/components`, `/lib`, `/models`, `/types` folders
-4. Given environment configuration, When `.env.example` exists, Then it documents all required variables (MONGODB_URI, NEXTAUTH_SECRET, etc.)
-5. Given the dev server, When `pnpm dev` runs, Then the application starts without errors on localhost:3000
-
-#### Story 1.2: Database Connection & Base Models
-
-**As a** developer,
-**I want** MongoDB connection and base Mongoose models,
-**so that** data can be persisted and retrieved.
-
-**Acceptance Criteria:**
-
-1. Given MongoDB URI in environment, When application starts, Then connection is established successfully
-2. Given the User model, When defined, Then it includes: email, password (hashed), name, phone, role, parishId (optional), isActive, createdAt, updatedAt
-3. Given the Role enum, When defined, Then it includes: SUPER_ADMIN, MANAGER_PRIEST, PARISH_PRIEST, ACCOUNTANT, PARISH_SECRETARY
-4. Given database connection failure, When it occurs, Then application logs error and retries with exponential backoff
-5. Given Mongoose models, When exported, Then TypeScript types are properly inferred
-
-#### Story 1.3: Authentication System
-
+### Story 1.2: Authentication System
 **As a** user,
-**I want** to log in with email and password,
+**I want** to login with email and password,
 **so that** I can access the system securely.
 
 **Acceptance Criteria:**
+1. Given valid credentials, When I submit login form, Then I'm authenticated and redirected to dashboard
+2. Given invalid credentials, When I submit login form, Then I see appropriate error message
+3. Given expired session, When I make request, Then I'm redirected to login page
+4. Given logged in user, When I click logout, Then session is invalidated and I'm redirected to login
+5. Given login form, When I submit, Then React Hook Form validates with Yup schema
 
-1. Given NextAuth.js configuration, When set up, Then Credentials provider is configured with JWT strategy
-2. Given the login page at `/login`, When rendered, Then it displays email and password fields with validation
-3. Given valid credentials, When user submits login form, Then JWT token is created and user is redirected to dashboard
-4. Given invalid credentials, When user submits login form, Then error message "Invalid email or password" is displayed
-5. Given inactive account, When user attempts login, Then error message "Account is deactivated" is displayed
-6. Given authenticated session, When user accesses protected route, Then access is granted
-7. Given no session, When user accesses protected route, Then user is redirected to `/login`
-
-#### Story 1.4: Layout & Navigation Shell
-
-**As a** user,
-**I want** a consistent layout with sidebar navigation,
-**so that** I can navigate between different modules easily.
+### Story 1.3: RBAC Implementation
+**As an** administrator,
+**I want** to assign roles to users,
+**so that** they have appropriate access to system features.
 
 **Acceptance Criteria:**
+1. Given 5 predefined roles (Super Admin, Diocese Manager, Parish Priest, Accountant, Parish Secretary), When I assign role to user, Then their permissions are updated
+2. Given user with specific role, When they access sidebar, Then only permitted menu items are visible
+3. Given user without permission, When they access restricted API route, Then they receive 403 Forbidden
+4. Given user without permission, When they navigate to restricted URL, Then they're redirected to Dashboard with error
 
-1. Given authenticated user, When viewing any page, Then sidebar with navigation menu is visible
-2. Given the sidebar, When rendered, Then it shows user name, role, and logout button
-3. Given user role, When sidebar renders, Then only permitted menu items are visible (role-based filtering)
-4. Given mobile viewport, When rendered, Then sidebar collapses to hamburger menu
-5. Given the main content area, When rendered, Then it has proper padding and max-width for readability
-6. Given the header, When rendered, Then it shows current page title and breadcrumbs
-
-#### Story 1.5: User Management CRUD
-
+### Story 1.4: User Management
 **As a** Super Admin,
 **I want** to manage user accounts,
-**so that** I can control who has access to the system.
+**so that** I can control system access.
 
 **Acceptance Criteria:**
+1. Given user management page, When I create new user, Then account is created with specified role and parish assignment
+2. Given existing user, When I deactivate account, Then user cannot login but data is preserved
+3. Given existing user, When I reset password, Then temporary password is set and user must change on next login
+4. Given user list with TanStack Table, When I filter by role or parish, Then only matching users are displayed
 
-1. Given Super Admin role, When accessing `/users`, Then user list is displayed with columns: name, email, role, parish, status, actions
-2. Given user list, When "Add User" clicked, Then modal opens with form: name, email, password, role (select), parish (select, conditional), isActive (toggle)
-3. Given new user form, When submitted with valid data, Then user is created with hashed password and success toast shown
-4. Given existing user, When "Edit" clicked, Then modal opens with pre-filled data (password field empty for security)
-5. Given user edit form, When password field is empty, Then existing password is preserved
-6. Given user edit form, When password field has value, Then password is updated with new hash
-7. Given existing user, When "Deactivate" clicked, Then confirmation dialog appears and user isActive becomes false
-8. Given deactivated user, When "Activate" clicked, Then user isActive becomes true
-9. Given Super Admin user, When viewing user list, Then cannot delete or deactivate own account
-10. Given non-Super Admin role, When accessing `/users`, Then redirect to dashboard with "Access denied" message
+## Epic 2: Parish & Parishioner Management
 
-#### Story 1.6: RBAC Middleware & API Protection
+**Goal:** Implement CRUD operations for parishes and parishioners with hierarchical relationship. Each parishioner must belong to exactly one parish.
 
-**As a** system,
-**I want** role-based access control on all routes,
-**so that** users can only access authorized resources.
+### Story 2.1: Parish Management
+**As an** administrator,
+**I want** to manage parish information,
+**so that** I can maintain accurate parish records.
 
 **Acceptance Criteria:**
+1. Given parish list page, When I click add, Then I can create new parish with name, address, phone, and founding date
+2. Given existing parish, When I edit details, Then changes are saved and reflected in list
+3. Given parish with parishioners, When I try to delete, Then system prevents deletion with warning
+4. Given parish list with TanStack Table, When I search by name, Then matching parishes are displayed
 
-1. Given API route, When request made, Then middleware checks for valid JWT token
-2. Given protected API route with role requirement, When user lacks required role, Then 403 Forbidden response returned
-3. Given route configuration, When defined, Then each route specifies allowed roles array
-4. Given Parish Priest or Secretary role, When accessing parish-scoped data, Then only data for assigned parish is returned
-5. Given RBAC middleware, When unauthorized access attempted, Then audit log records the attempt
-6. Given client-side navigation, When user lacks permission, Then menu item is hidden AND direct URL access redirects to dashboard
-
----
-
-### Epic 2: Master Data Management
-
-**Goal:** Implement CRUD operations for all master data entities that other modules depend on. This epic delivers the foundational data management screens.
-
-#### Story 2.1: Parish Management
-
-**As an** authorized user,
-**I want** to manage parish records,
-**so that** parish information is maintained accurately.
-
-**Acceptance Criteria:**
-
-1. Given authorized role (Super Admin, Manager Priest, Parish Priest for own parish), When accessing `/parishes`, Then parish list is displayed
-2. Given parish list, When rendered, Then columns show: name, address, phone, email, priest name, parishioner count, actions
-3. Given "Add Parish" action, When clicked, Then modal opens with form: name*, address*, phone, email, notes
-4. Given parish form, When submitted with valid data, Then parish is created and list refreshes
-5. Given existing parish, When "Edit" clicked, Then modal opens with pre-filled data
-6. Given existing parish, When "Delete" clicked, Then confirmation shows "This will affect X parishioners" and soft-deletes if confirmed
-7. Given Parish Priest role, When viewing parishes, Then only assigned parish is visible and editable
-8. Given search input, When typing, Then list filters by parish name in real-time
-
-#### Story 2.2: Parishioner Management
-
-**As an** authorized user,
+### Story 2.2: Parishioner Management
+**As a** parish secretary,
 **I want** to manage parishioner records,
-**so that** parish membership is tracked accurately.
+**so that** I can maintain accurate membership data.
 
 **Acceptance Criteria:**
+1. Given parishioner form, When I create record, Then parishioner is created with required parish assignment
+2. Given parishioner list, When I filter by parish, Then only parishioners from that parish are shown
+3. Given Parish Priest role, When I view parishioners, Then I only see parishioners from my assigned parish
+4. Given parishioner details, When I update info, Then changes are saved with audit log entry
 
-1. Given authorized role, When accessing `/parishioners`, Then parishioner list is displayed with pagination
-2. Given parishioner list, When rendered, Then columns show: name, parish, phone, address, status, actions
-3. Given "Add Parishioner" action, When clicked, Then modal opens with form: name*, parishId* (select), phone, address, dateOfBirth, notes
-4. Given parishioner form, When parishId is empty, Then validation error "Parish is required" is shown
-5. Given Parish Priest/Secretary role, When adding parishioner, Then parishId is auto-set to assigned parish (hidden field)
-6. Given existing parishioner, When "Edit" clicked, Then modal opens with pre-filled data
-7. Given existing parishioner, When "Delete" clicked, Then soft-delete after confirmation
-8. Given filter controls, When parish filter selected, Then list shows only parishioners from that parish
-9. Given TanStack Table, When column header clicked, Then list sorts by that column
+## Epic 3: Finance - Master Data
 
-#### Story 2.3: Fund Category Management
+**Goal:** Implement financial master data management including 11 funds (3 groups), income/expense categories, bank accounts, and sender/receiver entities. Each with automatic balance calculation where applicable.
 
-**As an** Accountant or Admin,
-**I want** to manage fund categories,
-**so that** transactions can be properly categorized.
+### Story 3.1: Fund Management
+**As an** accountant,
+**I want** to manage the 11 diocese funds,
+**so that** I can track financial contributions by purpose.
 
 **Acceptance Criteria:**
+1. Given fund list, When page loads, Then all 11 funds are displayed with current balance
+2. Given fund form, When I create/edit fund, Then I can set name, group (A/B/C), and description
+3. Given fund with transactions, When I view details, Then balance is calculated as SUM(income) - SUM(expense) + SUM(adjustment)
+4. Given fund list with TanStack Table, When I filter by group, Then only funds in that group are displayed
 
-1. Given authorized role (Super Admin, Accountant), When accessing `/funds`, Then fund list is displayed
-2. Given fund list, When rendered, Then columns show: name, group (A/B/C), description, balance, status, actions
-3. Given fund balance, When displayed, Then it calculates: Total Income - Total Expense + Adj Increase - Adj Decrease
-4. Given "Add Fund" action, When clicked, Then modal opens with form: name*, group* (select: A/B/C), description, isActive
-5. Given group selection, When group A selected, Then label shows "VBCC Funds"
-6. Given group selection, When group B selected, Then label shows "Diocese Office Funds"
-7. Given group selection, When group C selected, Then label shows "Internal & Pastoral Funds"
-8. Given existing fund with transactions, When "Delete" clicked, Then error "Cannot delete fund with existing transactions"
-9. Given fund list, When rendered, Then total balance across all funds is shown in summary card
-
-#### Story 2.4: Income/Expense Category Management
-
-**As an** Accountant or Admin,
+### Story 3.2: Income/Expense Category Management
+**As an** accountant,
 **I want** to manage income/expense categories,
-**so that** transactions have proper classification.
+**so that** transactions can be properly classified.
 
 **Acceptance Criteria:**
+1. Given category list, When I create category, Then I can set name, type (income/expense), and parent category
+2. Given system categories (Employee Salary, Asset Rental Income), When I try to delete or deactivate, Then system prevents action with warning
+3. Given category with transactions, When I view details, Then transaction count is displayed
+4. Given category list, When I toggle status, Then category is activated/deactivated
 
-1. Given authorized role, When accessing `/categories`, Then category list is displayed with tabs: Income, Expense
-2. Given category list, When rendered, Then columns show: name, type (income/expense), isSystem, isActive, actions
-3. Given "Add Category" action, When clicked, Then modal opens with form: name*, type* (income/expense), description, isActive
-4. Given system categories "Employee Salary" and "Asset Rental Income", When rendered, Then they have isSystem=true badge
-5. Given system category, When "Delete" clicked, Then error "System categories cannot be deleted"
-6. Given system category, When "Toggle Status" clicked, Then error "System categories cannot be deactivated"
-7. Given non-system category, When "Delete" clicked and has transactions, Then error "Cannot delete category with existing transactions"
-
-#### Story 2.5: Bank Account Management
-
-**As an** Accountant or Admin,
-**I want** to manage bank accounts,
-**so that** bank transfers can be tracked properly.
+### Story 3.3: Bank Account Management
+**As an** accountant,
+**I want** to manage diocese bank accounts,
+**so that** transfer transactions can be properly tracked.
 
 **Acceptance Criteria:**
+1. Given bank account form, When I create account, Then I can set bank name, account number, account holder, and purpose
+2. Given account list, When page loads, Then each account shows current balance from transactions
+3. Given account with transactions, When I view details, Then balance is calculated from transfer transactions
+4. Given account list, When I set default account, Then that account is pre-selected in transaction forms
 
-1. Given authorized role, When accessing `/bank-accounts`, Then account list is displayed
-2. Given account list, When rendered, Then columns show: bank name, account number, account holder, balance, isDefault, actions
-3. Given account balance, When displayed, Then it calculates from approved bank transfer transactions
-4. Given "Add Account" action, When clicked, Then modal opens with form: bankName*, accountNumber*, accountHolder\*, branch, isDefault (toggle)
-5. Given isDefault toggle, When enabled on new account, Then previous default account is unset
-6. Given existing account with transactions, When "Delete" clicked, Then error "Cannot delete account with existing transactions"
-7. Given account list, When rendered, Then total balance across all accounts is shown in summary card
-
-#### Story 2.6: Sender/Receiver Entity Management
-
-**As an** authorized user,
+### Story 3.4: Sender/Receiver Entity Management
+**As an** accountant,
 **I want** to manage sender/receiver entities,
-**so that** transaction parties are properly recorded.
+**so that** transaction counterparties are properly tracked.
 
 **Acceptance Criteria:**
+1. Given entity form, When I create entity, Then I can set name, phone (required), and bank account info
+2. Given transaction form, When I select entity field, Then I can search existing entities or quick-add new one via modal
+3. Given entity with incomplete bank info, When creating transfer transaction, Then system warns about missing info
+4. Given entity list, When I search by name or phone, Then matching entities are displayed
 
-1. Given authorized role, When accessing `/entities`, Then entity list is displayed
-2. Given entity list, When rendered, Then columns show: name, phone, bank account info, transaction count, actions
-3. Given "Add Entity" action, When clicked, Then modal opens with form: name\*, phone, bankName, accountNumber, accountHolder
-4. Given entity form, When bank info partially filled, Then validation error "Complete all bank fields or leave all empty"
-5. Given searchable select component (for use in other forms), When typing, Then entities filter by name/phone
-6. Given searchable select component, When "+" clicked, Then quick-add modal opens inline
-7. Given quick-add modal, When submitted, Then new entity created and auto-selected in parent form
-8. Given existing entity, When "Edit" clicked, Then modal opens with pre-filled data
-9. Given existing entity with transactions, When "Delete" clicked, Then error "Cannot delete entity with existing transactions"
+## Epic 4: Finance - Transaction Management
 
----
+**Goal:** Implement core transaction management with three types (Income, Expense, Adjustment), approval workflow, file attachments via Cloudinary, and advanced filtering. Integration with fund and bank account balances.
 
-### Epic 3: Transaction Management (Core)
-
-**Goal:** Implement the core financial transaction system with income, expense, and adjustment transactions, including the approval workflow. This is the most critical epic for the MVP.
-
-#### Story 3.1: Transaction List with Tabs
-
-**As an** authorized user,
-**I want** to view transactions organized by type,
-**so that** I can easily find and manage financial records.
+### Story 4.1: Transaction CRUD
+**As a** user with transaction permission,
+**I want** to create and manage financial transactions,
+**so that** all financial activities are recorded.
 
 **Acceptance Criteria:**
+1. Given transaction form with React Hook Form, When I create income/expense, Then I must select fund, category, entity, and payment method
+2. Given transfer payment method, When I save transaction, Then I must select a bank account
+3. Given transaction list, When page loads, Then transactions are displayed in tabs (Income/Expense/Adjustment)
+4. Given pending transaction, When I edit or delete, Then changes are saved; Given approved transaction, Then edit/delete is blocked
 
-1. Given authorized role, When accessing `/transactions`, Then transaction list with 3 tabs is displayed: Income, Expense, Adjustment
-2. Given transaction list, When rendered, Then columns show: date, description, amount, fund, category, entity, status, actions
-3. Given status column, When rendered, Then badges show: Pending (yellow), Approved (green), Rejected (red)
-4. Given filter panel, When expanded, Then filters available: date range, fund, category, status, entity, payment method
-5. Given date range filter, When selected, Then transactions within range are shown
-6. Given multiple filters, When applied, Then they combine with AND logic
-7. Given "Clear Filters" button, When clicked, Then all filters reset to default
-8. Given transaction list, When rendered, Then summary shows: total count, total amount for current filter
-
-#### Story 3.2: Create Income Transaction
-
-**As an** authorized user,
-**I want** to create income transactions,
-**so that** received funds are properly recorded.
-
-**Acceptance Criteria:**
-
-1. Given authorized role, When clicking "Add Income", Then modal opens with income transaction form
-2. Given income form, When rendered, Then fields include: date*, amount*, fundId* (select), categoryId* (select, income categories only), entityId* (searchable select with quick-add), paymentMethod* (cash/bank transfer), bankAccountId (conditional), description, attachments
-3. Given paymentMethod = "bank_transfer", When selected, Then bankAccountId becomes required
-4. Given paymentMethod = "bank_transfer", When entity has no bank info, Then warning "Selected entity has no bank account information"
-5. Given valid income form, When submitted, Then transaction created with status "pending"
-6. Given file attachments, When uploaded, Then files saved and linked to transaction
-7. Given successful creation, When completed, Then success toast shown and list refreshes
-8. Given React Hook Form + Yup, When validation fails, Then field-level errors displayed inline
-
-#### Story 3.3: Create Expense Transaction
-
-**As an** authorized user,
-**I want** to create expense transactions,
-**so that** payments are properly recorded.
-
-**Acceptance Criteria:**
-
-1. Given authorized role, When clicking "Add Expense", Then modal opens with expense transaction form
-2. Given expense form, When rendered, Then fields include: date*, amount*, fundId* (select), categoryId* (select, expense categories only), entityId* (searchable select), paymentMethod*, bankAccountId (conditional), description, attachments
-3. Given paymentMethod = "bank_transfer", When selected, Then bankAccountId required AND entity must have bank info
-4. Given paymentMethod = "bank_transfer" and entity has no bank info, When form validates, Then error "Recipient must have bank account for bank transfer"
-5. Given valid expense form, When submitted, Then transaction created with status "pending"
-6. Given validation, When amount <= 0, Then error "Amount must be greater than 0"
-
-#### Story 3.4: Create Adjustment Transaction
-
-**As an** Accountant or Admin,
+### Story 4.2: Adjustment Transactions
+**As an** accountant,
 **I want** to create adjustment transactions,
-**so that** fund balances can be corrected when needed.
+**so that** I can correct fund balances with proper documentation.
 
 **Acceptance Criteria:**
+1. Given adjustment form, When I create adjustment, Then I must select type (Increase/Decrease) and provide reason
+2. Given adjustment, When approved, Then fund balance is updated accordingly
+3. Given adjustment list, When I view details, Then adjustment type and reason are clearly displayed
+4. Given adjustment history, When I filter by fund, Then only adjustments for that fund are shown
 
-1. Given Accountant or Admin role, When clicking "Add Adjustment", Then modal opens with adjustment form
-2. Given adjustment form, When rendered, Then fields include: date*, adjustmentType* (increase/decrease), amount*, fundId*, reason\*, attachments
-3. Given adjustmentType = "increase", When created, Then transaction adds to fund balance
-4. Given adjustmentType = "decrease", When created, Then transaction subtracts from fund balance
-5. Given reason field, When empty, Then validation error "Reason is required for adjustments"
-6. Given adjustment transaction, When created, Then status is "pending" (requires approval like other transactions)
-
-#### Story 3.5: Transaction Approval Workflow
-
-**As a** Super Admin or Manager Priest,
+### Story 4.3: Transaction Approval Workflow
+**As a** Diocese Manager or Super Admin,
 **I want** to approve or reject transactions,
-**so that** financial records are verified before affecting balances.
+**so that** only valid transactions affect balances.
 
 **Acceptance Criteria:**
+1. Given pending transactions, When I view approval queue, Then I can approve individually or in bulk
+2. Given transaction approval, When I approve, Then transaction is finalized and balances are updated
+3. Given transaction rejection, When I reject with reason, Then transaction is marked rejected and creator is notified
+4. Given approved transaction, When I cancel approval (as Super Admin/Diocese Manager), Then balances are reversed
 
-1. Given Super Admin or Manager Priest role, When viewing transaction, Then "Approve" and "Reject" buttons are visible
-2. Given pending transaction, When "Approve" clicked, Then status changes to "approved" and balance updates immediately
-3. Given pending transaction, When "Reject" clicked, Then modal asks for rejection reason
-4. Given rejection reason, When submitted, Then status changes to "rejected" with reason stored
-5. Given approved transaction, When rendered, Then "Edit" and "Delete" buttons are hidden
-6. Given rejected transaction, When rendered, Then "Edit" button is visible (to fix and resubmit)
-7. Given Super Admin or Manager Priest, When viewing approved transaction, Then "Unapprove" button is visible
-8. Given "Unapprove" action, When clicked, Then status reverts to "pending" and balance recalculates
-9. Given bulk selection, When multiple pending transactions selected, Then "Approve Selected" button appears
-10. Given non-approval role (Accountant, Parish Priest, Secretary), When viewing transaction, Then approval buttons are hidden
-
-#### Story 3.6: Transaction Edit & Delete
-
-**As an** authorized user,
-**I want** to edit or delete my pending transactions,
-**so that** I can correct mistakes before approval.
+### Story 4.4: File Attachments with Cloudinary
+**As a** transaction creator,
+**I want** to attach supporting documents,
+**so that** transactions have proper documentation.
 
 **Acceptance Criteria:**
+1. Given transaction form, When I upload images/documents, Then files are uploaded to Cloudinary and attached to transaction
+2. Given attached files, When I click preview, Then images display in lightbox and documents open in new tab
+3. Given file upload, When file exceeds size limit (10MB), Then user sees error with allowed size
+4. Given transaction details, When I view attachments, Then all Cloudinary URLs are listed with preview thumbnails
 
-1. Given pending transaction, When "Edit" clicked, Then modal opens with pre-filled form
-2. Given pending transaction edit, When saved, Then transaction updates and audit log records changes
-3. Given pending transaction, When "Delete" clicked, Then confirmation dialog appears
-4. Given delete confirmation, When confirmed, Then transaction soft-deleted and removed from list
-5. Given approved transaction, When user attempts edit via API, Then 403 error "Cannot edit approved transaction"
-6. Given rejected transaction, When "Edit" clicked, Then form opens allowing corrections
-7. Given rejected transaction edit, When saved, Then status resets to "pending" for re-approval
-
-#### Story 3.7: Fund Balance Calculation
-
-**As a** user,
-**I want** to see accurate fund balances,
-**so that** I know the current financial status of each fund.
+### Story 4.5: Advanced Filtering
+**As a** finance user,
+**I want** to filter transactions by multiple criteria,
+**so that** I can find specific transactions quickly.
 
 **Acceptance Criteria:**
+1. Given transaction list with TanStack Table, When I apply date range filter, Then only transactions in that period are shown
+2. Given filter panel, When I select multiple criteria (fund, category, status, entity), Then results match all criteria
+3. Given filter state, When I clear filters, Then all transactions are displayed again
+4. Given export function, When I export filtered results, Then CSV file downloads with matching data
 
-1. Given fund balance query, When executed, Then formula applies: SUM(approved income) - SUM(approved expense) + SUM(approved adjustment increase) - SUM(approved adjustment decrease)
-2. Given fund list page, When rendered, Then each fund shows current balance
-3. Given transaction approval, When status changes to approved, Then related fund balance updates in real-time (React Query invalidation)
-4. Given transaction unapproval, When status changes to pending, Then fund balance recalculates
-5. Given dashboard, When rendered, Then total balance across all funds is displayed
-6. Given negative balance, When calculated, Then displayed in red with warning indicator
+## Epic 5: HR & Payroll
 
-#### Story 3.8: Bank Account Balance Calculation
+**Goal:** Implement employee management with labor contracts and monthly payroll generation. Approved payroll automatically creates salary expense transactions.
 
-**As a** user,
-**I want** to see accurate bank account balances,
-**so that** I can reconcile with actual bank statements.
-
-**Acceptance Criteria:**
-
-1. Given bank account balance query, When executed, Then formula: SUM(approved income via this account) - SUM(approved expense via this account)
-2. Given bank account list, When rendered, Then each account shows current balance
-3. Given transaction with bankAccountId, When approved, Then bank account balance updates
-4. Given bank account detail view, When accessed, Then list of transactions for this account is shown
-
----
-
-### Epic 4: HR & Payroll
-
-**Goal:** Implement personnel management and monthly payroll processing with automatic expense transaction creation upon approval.
-
-#### Story 4.1: Personnel Management
-
-**As an** Accountant or Admin,
-**I want** to manage personnel records,
-**so that** employee information is maintained accurately.
+### Story 5.1: Employee Management
+**As an** HR user,
+**I want** to manage employee records,
+**so that** I can track diocese staff.
 
 **Acceptance Criteria:**
+1. Given employee form, When I create employee, Then I can set personal info and position
+2. Given employee list with TanStack Table, When I filter by contract status, Then only matching employees are shown
+3. Given employee details, When I view profile, Then contract history is displayed
+4. Given employee, When I update basic info, Then changes are saved with audit log
 
-1. Given authorized role (Super Admin, Accountant), When accessing `/personnel`, Then personnel list is displayed
-2. Given personnel list, When rendered, Then columns show: name, phone, email, position, contract status, base salary, actions
-3. Given "Add Personnel" action, When clicked, Then modal opens with form: name*, phone*, email, position, address, bankName, accountNumber, accountHolder, notes
-4. Given personnel without bank info, When payroll processed, Then warning shown during payroll approval
-5. Given existing personnel, When "Edit" clicked, Then modal opens with pre-filled data
-6. Given existing personnel, When "Delete" clicked and has payroll history, Then soft-delete only
-7. Given personnel list, When contract status filter applied, Then shows only personnel with matching contract status
-
-#### Story 4.2: Employment Contract Management
-
-**As an** Accountant or Admin,
-**I want** to manage employment contracts,
-**so that** salary and contract terms are properly recorded.
+### Story 5.2: Labor Contract Management
+**As an** HR user,
+**I want** to manage employee contracts,
+**so that** salary and employment terms are documented.
 
 **Acceptance Criteria:**
+1. Given employee, When I create contract, Then I can set type (fixed/indefinite), salary, start date, and end date
+2. Given fixed-term contract, When approaching expiry (30 days), Then system shows warning indicator
+3. Given employee with active contract, When I try to create new contract, Then system prevents overlap
+4. Given contract list, When I view details, Then salary and terms are clearly displayed
 
-1. Given personnel detail view, When accessed, Then contract section is visible
-2. Given "Add Contract" action, When clicked, Then modal opens with form: contractType* (fixed-term/indefinite), startDate*, endDate (required if fixed-term), baseSalary\*, allowances (JSON/key-value), notes
-3. Given contractType = "fixed-term", When selected, Then endDate becomes required
-4. Given existing active contract, When new contract added, Then previous contract auto-terminates (endDate = new startDate - 1)
-5. Given contract list for personnel, When rendered, Then shows: type, period, base salary, status (active/expired/terminated)
-6. Given expired contract (endDate < today), When rendered, Then status shows "Expired" in yellow
-7. Given personnel with no active contract, When payroll generated, Then this personnel is excluded
-
-#### Story 4.3: Payroll Generation
-
-**As an** Accountant,
+### Story 5.3: Monthly Payroll Generation
+**As an** accountant,
 **I want** to generate monthly payroll,
-**so that** employee salaries can be processed systematically.
+**so that** employees are paid correctly.
 
 **Acceptance Criteria:**
+1. Given payroll page, When I select month without existing payroll, Then I can generate new payroll
+2. Given payroll generation, When I generate, Then all employees with active contracts are included
+3. Given pending payroll, When I edit line items, Then I can adjust allowances, deductions, and advances
+4. Given month with existing payroll, When I try to generate, Then system prevents duplicate
 
-1. Given authorized role, When accessing `/payroll`, Then payroll list by month is displayed
-2. Given payroll list, When rendered, Then columns show: month/year, personnel count, total amount, status, actions
-3. Given "Generate Payroll" action, When clicked, Then modal asks for month/year selection
-4. Given month/year already has payroll, When attempting to generate, Then error "Payroll for this month already exists"
-5. Given valid month/year, When generated, Then system creates payroll with all personnel having active contracts
-6. Given generated payroll, When rendered, Then detail shows: personnel name, base salary, allowances, deductions, advances, net pay
-7. Given payroll detail, When status is "draft", Then cells are editable (allowances, deductions, advances)
-8. Given payroll row, When values change, Then net pay recalculates: baseSalary + allowances - deductions - advances
-9. Given payroll generation, When personnel has no bank info, Then warning icon shows on that row
-
-#### Story 4.4: Payroll Approval & Transaction Creation
-
-**As a** Super Admin or Manager Priest,
+### Story 5.4: Payroll Approval and Transaction Creation
+**As a** Diocese Manager,
 **I want** to approve payroll,
-**so that** salary expenses are officially recorded.
+**so that** salary payments are authorized and recorded.
 
 **Acceptance Criteria:**
+1. Given pending payroll, When I approve, Then payroll status changes to approved (read-only)
+2. Given approval process, When employee not in sender/receiver list, Then system auto-adds from employee info
+3. Given approved payroll, When approval completes, Then expense transactions are created for each employee
+4. Given created transactions, When I view, Then they link back to payroll and employee record
 
-1. Given draft payroll, When "Submit for Approval" clicked, Then status changes to "pending"
-2. Given pending payroll, When Super Admin or Manager Priest views, Then "Approve" and "Reject" buttons visible
-3. Given payroll approval, When "Approve" clicked, Then:
-   - Status changes to "approved"
-   - For each personnel row, expense transaction is created with:
-     - categoryId = "Employee Salary" (system category)
-     - amount = net pay
-     - entityId = personnel (auto-created in entities if not exists)
-     - paymentMethod = "bank_transfer" (if personnel has bank info) or "cash"
-     - status = "approved" (auto-approved as part of payroll)
-4. Given personnel not in entities table, When payroll approved, Then personnel auto-added to entities with their bank info
-5. Given approved payroll, When viewed, Then all fields are read-only
-6. Given approved payroll, When transactions viewed, Then link to each salary transaction is shown
-7. Given payroll rejection, When "Reject" clicked, Then reason required and status changes to "rejected"
-8. Given rejected payroll, When edited and resubmitted, Then status returns to "pending"
+## Epic 6: Administration - Assets & Contracts
 
----
+**Goal:** Implement asset management and rental contract management. Rental payments automatically create income transactions.
 
-### Epic 5: Asset & Rental Management
-
-**Goal:** Implement asset tracking and rental contract management with automatic income transaction creation for rental payments.
-
-#### Story 5.1: Asset Management
-
-**As an** authorized user,
+### Story 6.1: Asset Management
+**As an** administrator,
 **I want** to manage diocese assets,
-**so that** property information is properly tracked.
+**so that** property inventory is tracked.
 
 **Acceptance Criteria:**
+1. Given asset form, When I create asset, Then I can set type, area, value, status, and upload images to Cloudinary
+2. Given asset list with TanStack Table, When I filter by status (available/rented/in-use), Then matching assets are shown
+3. Given asset images, When I upload multiple, Then all images display in gallery view from Cloudinary
+4. Given asset with active rental, When I try to delete, Then system prevents deletion
 
-1. Given authorized role, When accessing `/assets`, Then asset list is displayed
-2. Given asset list, When rendered, Then columns show: name, type, location, area, value, status (available/rented/maintenance), images thumbnail, actions
-3. Given "Add Asset" action, When clicked, Then modal opens with form: name*, type* (select: land/building/equipment/vehicle/other), location*, area, estimatedValue, status*, description, images (multiple upload)
-4. Given image upload, When files selected, Then preview thumbnails shown before save
-5. Given existing asset, When "Edit" clicked, Then modal opens with pre-filled data and existing images
-6. Given asset with active rental contract, When "Delete" clicked, Then error "Cannot delete asset with active rental contract"
-7. Given asset status = "rented", When displayed, Then badge shows tenant name from active contract
-8. Given asset detail view, When accessed, Then rental history is shown
-
-#### Story 5.2: Rental Contract Management
-
-**As an** authorized user,
+### Story 6.2: Rental Contract Management
+**As an** administrator,
 **I want** to manage rental contracts,
-**so that** tenant agreements are properly documented.
+**so that** leased property income is tracked.
 
 **Acceptance Criteria:**
+1. Given rental form with React Hook Form, When I create contract, Then I must provide tenant info, asset, duration, deposit, and monthly rent
+2. Given active contract, When I edit, Then only duration and rent amount can be modified
+3. Given contract list, When contract expires soon (30 days), Then warning indicator is displayed
+4. Given contract details, When I upload documents, Then attachments are stored in Cloudinary
 
-1. Given authorized role, When accessing `/contracts`, Then contract list is displayed
-2. Given contract list, When rendered, Then columns show: asset name, tenant name, rental amount, period, status, next payment due, actions
-3. Given "Add Contract" action, When clicked, Then modal opens with form:
-   - assetId\* (select available assets)
-   - Tenant info: name*, phone*, address\*, email
-   - Tenant bank: bankName, accountNumber, accountHolder
-   - Contract: startDate*, endDate*, monthlyRent*, deposit, paymentDay* (1-28), fundId\* (which fund receives rental income)
-   - attachments (contract documents)
-4. Given contract creation, When saved, Then asset status changes to "rented"
-5. Given existing contract, When "Edit" clicked, Then only editable: endDate, monthlyRent (as per FR20)
-6. Given contract edit restriction, When attempting to edit other fields, Then they are disabled with tooltip "Only duration and amount can be modified"
-7. Given contract termination, When "Terminate" clicked, Then endDate set to today and asset status changes to "available"
-8. Given active contract, When paymentDay passes, Then visual indicator shows payment is due
-9. Given bank transfer payment, When tenant has no bank info, Then warning "Bank transfer not available - tenant has no bank account"
-
-#### Story 5.3: Rental Payment Processing
-
-**As an** authorized user,
+### Story 6.3: Rental Payment Processing
+**As an** accountant,
 **I want** to record rental payments,
-**so that** income is properly tracked.
+**so that** income is tracked with proper documentation.
 
 **Acceptance Criteria:**
+1. Given active contract, When I record payment, Then income transaction is created linked to contract
+2. Given payment form, When selecting fund, Then I can choose which fund receives the income
+3. Given transfer payment, When tenant or diocese lacks bank info, Then system blocks transfer option with guidance message
+4. Given payment history, When I view contract, Then all payments are listed with status
 
-1. Given active contract, When "Record Payment" clicked, Then payment modal opens
-2. Given payment modal, When rendered, Then shows: contract summary, expected amount (monthlyRent), paymentMethod* (cash/bank_transfer), actualAmount*, paymentDate\*, notes
-3. Given paymentMethod = "bank_transfer", When selected, Then:
-   - Diocese bankAccountId required (select from bank accounts)
-   - Tenant must have bank info (validated)
-4. Given paymentMethod = "bank_transfer" but tenant has no bank info, When selected, Then error and method auto-switches to cash with message
-5. Given valid payment, When submitted, Then income transaction auto-created with:
-   - type = "income"
-   - categoryId = "Asset Rental Income" (system category)
-   - fundId = contract's fundId
-   - entityId = tenant (auto-created in entities if not exists)
-   - amount = actualAmount
-   - status = "pending" (requires approval)
-6. Given tenant not in entities table, When payment processed, Then tenant auto-added to entities
-7. Given payment history, When contract detail viewed, Then list of all payments with transaction links shown
-8. Given contract list, When rendered, Then "overdue" badge shows if payment is past due date
+## Epic 7: System - Audit & Dashboard
 
----
+**Goal:** Implement comprehensive audit logging for traceability and role-based dashboards for management overview.
 
-### Epic 6: Audit Log & Dashboard
-
-**Goal:** Implement comprehensive audit logging and a role-based dashboard with key statistics.
-
-#### Story 6.1: Audit Log Auto-Recording
-
-**As the** system,
-**I want** to automatically record all important changes,
-**so that** there is a complete audit trail.
-
-**Acceptance Criteria:**
-
-1. Given any Create operation, When completed, Then audit log records: action="CREATE", userId, entityType, entityId, newValue (JSON), timestamp, ipAddress, userAgent
-2. Given any Update operation, When completed, Then audit log records: action="UPDATE", userId, entityType, entityId, oldValue, newValue, changedFields array, timestamp, ipAddress, userAgent
-3. Given any Delete operation, When completed, Then audit log records: action="DELETE", userId, entityType, entityId, oldValue (full document), timestamp, ipAddress, userAgent
-4. Given entities to log, When configured, Then includes: User, Parish, Parishioner, Fund, Category, BankAccount, Entity, Transaction, Personnel, Contract, Payroll, Asset, RentalContract
-5. Given Mongoose middleware, When save/update/delete hooks fire, Then audit log entry is created automatically
-6. Given audit log entry, When created, Then it cannot be modified or deleted (immutable)
-7. Given API request, When processing, Then IP address and User Agent are captured from request headers
-
-#### Story 6.2: Audit Log Viewing & Search
-
+### Story 7.1: Audit Log System
 **As a** Super Admin,
-**I want** to view and search audit logs,
-**so that** I can investigate changes when needed.
+**I want** to view system audit logs,
+**so that** I can trace all user actions for accountability.
 
 **Acceptance Criteria:**
+1. Given CRUD operation on important entity, When action completes, Then audit log entry is created automatically
+2. Given audit log entry, When I view details, Then I see user, action, timestamp, IP, old value, new value
+3. Given audit log list with TanStack Table, When I filter by user/action/entity/date range, Then matching entries are shown
+4. Given old/new values, When I view detail, Then changes are displayed in JSON diff or comparison table format
 
-1. Given Super Admin role, When accessing `/audit-log`, Then log list is displayed (newest first)
-2. Given audit log list, When rendered, Then columns show: timestamp, user, action, entity type, entity ID, summary of changes
-3. Given filter panel, When expanded, Then filters include: date range\*, user (select), action (CREATE/UPDATE/DELETE), entity type (select)
-4. Given date range filter, When not set, Then defaults to last 30 days
-5. Given search input, When typing, Then logs filter by content in oldValue/newValue (full-text search)
-6. Given log entry, When "View Details" clicked, Then modal shows full oldValue and newValue in formatted JSON or comparison table
-7. Given UPDATE action, When details viewed, Then changed fields are highlighted
-8. Given pagination, When implemented, Then page size is 50 with infinite scroll or numbered pages
-9. Given non-Super Admin role, When accessing `/audit-log`, Then redirect to dashboard with "Access denied"
-
-#### Story 6.3: Dashboard Statistics
-
-**As an** authenticated user,
-**I want** to see relevant statistics on the dashboard,
-**so that** I have an overview of the system status.
+### Story 7.2: Dashboard - Super Admin & Diocese Manager
+**As a** Super Admin or Diocese Manager,
+**I want** to see diocese-wide statistics,
+**so that** I can monitor overall financial health.
 
 **Acceptance Criteria:**
+1. Given dashboard, When page loads, Then summary cards show total income, expense, and net by period
+2. Given dashboard, When I view charts, Then income/expense trend by month is visualized
+3. Given dashboard, When I view pending approvals, Then count of pending transactions and payrolls is shown
+4. Given dashboard, When I click summary card, Then I'm navigated to detailed list view
 
-1. Given authenticated user, When accessing `/dashboard`, Then role-appropriate statistics are displayed
-2. Given Super Admin or Manager Priest, When viewing dashboard, Then shows:
-   - Total funds balance (sum of all fund balances)
-   - Total bank balance (sum of all bank account balances)
-   - Pending transactions count (awaiting approval)
-   - This month income vs expense comparison
-   - Recent transactions list (last 10)
-3. Given Accountant, When viewing dashboard, Then shows:
-   - Fund balances summary
-   - Bank account balances
-   - Pending transactions (own entries)
-   - Pending payroll status
-4. Given Parish Priest or Secretary, When viewing dashboard, Then shows:
-   - Parish statistics (parishioner count)
-   - Own pending transactions
-   - Recent approved transactions
-5. Given dashboard cards, When rendered, Then each card is clickable to navigate to detailed view
-6. Given income/expense chart, When rendered, Then shows bar chart comparing last 6 months
-7. Given React Query, When dashboard loads, Then data is cached and background-refreshed
+### Story 7.3: Dashboard - Parish Level
+**As a** Parish Priest,
+**I want** to see my parish statistics,
+**so that** I can monitor parish financial activities.
 
----
+**Acceptance Criteria:**
+1. Given Parish Priest dashboard, When page loads, Then only my parish data is shown
+2. Given parish stats, When I view summary, Then income/expense for my parish is displayed
+3. Given recent activity, When I view list, Then my recent transactions and their status are shown
+4. Given parishioner count, When I view stats, Then total parishioners in my parish is displayed
+
+## Checklist Results Report
+
+Skipped - Will run after user approval
 
 ## Next Steps
 
-### Create Architecture
-
-Run `*create-architecture` to create the technical architecture document with:
-
-- Data models (MongoDB schemas)
-- API specifications
-- Component structure
-- Security implementation details
-
-### Create Epic Files
-
-Run `*create-epic` to generate individual epic files in `docs/epics/` folder for implementation tracking.
+### Architect Prompt
+Run `*create-architecture` with this PRD to generate the technical architecture document including:
+- MongoDB schema design with Mongoose
+- Next.js API route specifications
+- Component architecture with shadcn/ui
+- Cloudinary integration details
+- Security implementation with NextAuth.js

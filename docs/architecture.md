@@ -1,1003 +1,1262 @@
-# Diocese Management System (GPBMT.ORG)
-# Architecture Document
-
----
+# Buon Ma Thuot Diocese Management System (GPBMT.ORG) Architecture Document
 
 ## Introduction
 
-This document defines the technical architecture for the Diocese Management System (GPBMT.ORG), a web-based platform for managing parishes, parishioners, finances, personnel, and assets for Buon Ma Thuot Diocese.
+This document defines the technical architecture for GPBMT.ORG - Buon Ma Thuot Diocese Management System.
 
 **PRD Reference:** docs/prd.md
-**Starter Template:** No
 
-## Change Log
+### Starter Template or Existing Project
+No - New project built from scratch
 
+### Change Log
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
-| 2026-01-29 | 1.0 | Initial architecture | @planner |
-
----
+| 2026-01-30 | 1.0 | Initial architecture | @planner |
 
 ## High Level Architecture
 
 ### Technical Summary
+GPBMT.ORG is a fullstack web application built with Next.js 15+ using the App Router pattern. The system follows a monolithic architecture with clear separation between presentation, business logic, and data layers. MongoDB serves as the primary database with Mongoose ODM for schema validation. Authentication is handled via NextAuth.js with JWT tokens. File uploads are managed through Cloudinary. The frontend uses shadcn/ui components with Tailwind CSS for styling, TanStack React Table for data grids, and TanStack React Query for server state management with domain-based hook organization.
 
-The system is built as a **Next.js fullstack monolith** using the App Router. The frontend uses React with shadcn/ui components and Tailwind CSS for styling. The backend consists of Next.js API routes connecting to MongoDB. Authentication is handled by NextAuth.js with JWT tokens and role-based access control (RBAC).
+### High Level Overview
+- **Architecture Style:** Monolith with layered architecture
+- **Repository Structure:** Monorepo (single Next.js project)
+- **API Style:** REST API via Next.js API Routes
+- **State Management:** TanStack React Query for server state (domain-based), React Context for UI state
+- **Authentication:** NextAuth.js with JWT + RBAC middleware
 
-### Architecture Style
-
-**Monolith (Next.js Fullstack)**
-
-Rationale: MVP scope with clear domain boundaries. Single deployment unit simplifies operations. Can be decomposed later if needed.
-
-### High Level Diagram
-
+### High Level Project Diagram
 ```mermaid
 graph TD
     subgraph Client
-        A[Browser]
+        A[Browser] --> B[Next.js Frontend]
+        B --> C[React Components]
+        C --> D[TanStack Query]
+        C --> E[React Hook Form]
     end
 
-    subgraph "Next.js Application"
-        B[React Frontend<br/>App Router]
-        C[API Routes<br/>/api/*]
-        D[NextAuth.js<br/>Authentication]
-        E[Middleware<br/>RBAC]
+    subgraph Server
+        F[Next.js API Routes] --> G[Auth Middleware]
+        G --> H[RBAC Middleware]
+        H --> I[Business Logic]
+        I --> J[Mongoose ODM]
     end
 
-    subgraph "Data Layer"
-        F[(MongoDB)]
-        G[File Storage<br/>Local/S3]
+    subgraph External
+        J --> K[(MongoDB Atlas)]
+        I --> L[Cloudinary]
+        G --> M[NextAuth.js]
     end
 
-    A --> B
-    B --> C
-    C --> D
-    C --> E
-    E --> F
-    C --> G
     D --> F
 ```
 
-### Key Architectural Patterns
-
-| Pattern | Purpose |
-|---------|---------|
-| **Server Components** | Default for pages, reduces client JS bundle |
-| **Client Components** | Interactive UI (forms, tables, modals) |
-| **API Routes** | RESTful endpoints in `/app/api/` |
-| **Repository Pattern** | Data access abstraction via Mongoose models |
-| **Middleware** | Auth and RBAC checks before route handlers |
-| **React Query** | Server state management, caching, background refresh |
-
----
+### Architectural and Design Patterns
+- **Repository Pattern:** Mongoose models encapsulate data access logic - _Rationale:_ Clean separation, easier testing
+- **Service Layer:** Business logic in dedicated service modules - _Rationale:_ Reusable logic, single responsibility
+- **Middleware Chain:** Auth → RBAC → Handler - _Rationale:_ Consistent security enforcement
+- **DTO Pattern:** Yup schemas for validation at API boundaries - _Rationale:_ Type-safe data transfer
+- **Observer Pattern:** Mongoose middleware for audit logging - _Rationale:_ Automatic, non-intrusive logging
+- **Query Keys Factory:** Centralized query key management per domain - _Rationale:_ Consistent cache invalidation, type-safe keys
 
 ## Tech Stack
 
-> **CRITICAL:** This is the SINGLE SOURCE OF TRUTH for technology choices. All implementation must reference this section.
+### Cloud Infrastructure
+- **Provider:** Vercel (primary) or any Node.js hosting
+- **Database:** MongoDB Atlas (managed cloud)
+- **File Storage:** Cloudinary (CDN-backed)
+- **Deployment Regions:** Auto (Vercel Edge) or single region
 
+### Technology Stack Table
 | Category | Technology | Version | Purpose | Rationale |
 |----------|------------|---------|---------|-----------|
-| **Language** | TypeScript | 5.3.x | Primary language | Type safety, better DX, catch errors at compile time |
-| **Runtime** | Node.js | 20.x LTS | Server runtime | Stability, long-term support, wide ecosystem |
-| **Framework** | Next.js | 14.x | Fullstack React | App Router, Server Components, API routes, built-in optimization |
-| **Styling** | Tailwind CSS | 3.4.x | Utility-first CSS | Rapid development, consistent design, small bundle |
-| **UI Components** | shadcn/ui | latest | Component library | High quality, accessible, customizable, copy-paste |
-| **Database** | MongoDB | 7.x | Document database | Flexible schema, good for nested documents, scalable |
-| **ODM** | Mongoose | 8.x | MongoDB ODM | Schema validation, middleware, TypeScript support |
-| **Forms** | React Hook Form | 7.x | Form management | Performant, minimal re-renders, easy validation |
-| **Validation** | Yup | 1.x | Schema validation | Declarative, composable, works with RHF |
-| **Tables** | TanStack Table | 8.x | Data tables | Headless, powerful filtering/sorting/pagination |
-| **Data Fetching** | TanStack Query | 5.x | Server state | Caching, background updates, optimistic UI |
-| **Auth** | NextAuth.js | 5.x (Auth.js) | Authentication | Native Next.js integration, JWT, multiple providers |
-| **Icons** | Lucide React | latest | Icon library | Consistent, tree-shakeable, works with shadcn |
-| **Date** | date-fns | 3.x | Date manipulation | Lightweight, tree-shakeable, immutable |
-| **File Upload** | Local FS (MVP) | - | File storage | Simple for MVP, migrate to S3 later |
-| **Testing** | Vitest | 1.x | Unit/Integration | Fast, Vite-native, Jest-compatible API |
-| **E2E Testing** | Playwright | 1.x | E2E tests | Cross-browser, reliable, good DX |
-| **Linting** | ESLint | 8.x | Code linting | Catch errors, enforce standards |
-| **Formatting** | Prettier | 3.x | Code formatting | Consistent style, auto-format |
-| **Package Manager** | pnpm | 8.x | Dependencies | Fast, disk-efficient, strict |
-
----
+| Framework | Next.js | 15.x | Fullstack React framework | App Router, Server Components, API Routes in one |
+| Language | TypeScript | 5.x | Primary language | Type safety, better DX, fewer runtime errors |
+| Runtime | Node.js | 20.x LTS | Server runtime | Stable LTS, required by Next.js |
+| Database | MongoDB | 7.x | Document database | Flexible schema, good for hierarchical data |
+| ODM | Mongoose | 8.x | MongoDB ODM | Schema validation, middleware, TypeScript support |
+| Auth | NextAuth.js | 5.x | Authentication | Built for Next.js, JWT support, extensible |
+| Styling | Tailwind CSS | 3.x | Utility CSS | Rapid development, consistent design |
+| UI Components | shadcn/ui | latest | Component library | Accessible, customizable, Tailwind-based |
+| Forms | React Hook Form | 7.x | Form management | Performance, minimal re-renders |
+| Validation | Yup | 1.x | Schema validation | Declarative, integrates with RHF |
+| Data Tables | TanStack Table | 8.x | Table/grid component | Headless, powerful filtering/sorting |
+| Server State | TanStack Query | 5.x | Data fetching | Caching, background updates, optimistic UI |
+| File Storage | Cloudinary | SDK | Image/file hosting | CDN, transformations, generous free tier |
+| Icons | Lucide React | latest | Icon library | Consistent, tree-shakeable |
+| Date | date-fns | 3.x | Date utilities | Lightweight, functional API |
 
 ## Data Models
 
 ### User
-
 **Purpose:** System users with authentication and role assignment
 
-```typescript
-interface User {
-  _id: ObjectId;
-  email: string;              // unique, required
-  password: string;           // hashed with bcrypt
-  name: string;               // required
-  phone?: string;
-  role: Role;                 // enum
-  parishId?: ObjectId;        // required for PARISH_PRIEST, PARISH_SECRETARY
-  isActive: boolean;          // default: true
-  lastLogin?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-enum Role {
-  SUPER_ADMIN = 'super_admin',
-  MANAGER_PRIEST = 'manager_priest',
-  PARISH_PRIEST = 'parish_priest',
-  ACCOUNTANT = 'accountant',
-  PARISH_SECRETARY = 'parish_secretary'
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- email: string (unique, required)
+- passwordHash: string (required)
+- name: string (required)
+- phone: string
+- role: ObjectId (ref: Role)
+- parish: ObjectId (ref: Parish, for Parish Priest/Secretary)
+- isActive: boolean (default: true)
+- mustChangePassword: boolean (default: false)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- User belongs to Parish (optional, via parishId)
+- belongs to one Role
+- optionally belongs to one Parish
 
----
+### Role
+**Purpose:** Predefined user roles for RBAC
+
+**Key Attributes:**
+- _id: ObjectId (PK)
+- name: string (enum: SUPER_ADMIN, DIOCESE_MANAGER, PARISH_PRIEST, ACCOUNTANT, PARISH_SECRETARY)
+- permissions: string[] (list of permission codes)
+- createdAt: Date
+
+**Relationships:**
+- has many Users
 
 ### Parish
+**Purpose:** Diocese parish units
 
-**Purpose:** Diocese parishes/churches
-
-```typescript
-interface Parish {
-  _id: ObjectId;
-  name: string;               // required, unique
-  address: string;            // required
-  phone?: string;
-  email?: string;
-  priestName?: string;
-  notes?: string;
-  isActive: boolean;          // default: true (soft delete)
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- name: string (required)
+- address: string
+- phone: string
+- email: string
+- foundingDate: Date
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Parish has many Parishioners
-- Parish has many Users (priests, secretaries)
-
----
+- has many Parishioners
+- has many Users (Parish Priest, Secretary)
 
 ### Parishioner
-
 **Purpose:** Parish members/congregation
 
-```typescript
-interface Parishioner {
-  _id: ObjectId;
-  parishId: ObjectId;         // required, ref: Parish
-  name: string;               // required
-  phone?: string;
-  address?: string;
-  dateOfBirth?: Date;
-  notes?: string;
-  isActive: boolean;          // default: true
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- parish: ObjectId (ref: Parish, required)
+- fullName: string (required)
+- baptismName: string
+- dateOfBirth: Date
+- gender: string (enum: MALE, FEMALE)
+- phone: string
+- address: string
+- familyHead: ObjectId (ref: Parishioner, self-reference)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Parishioner belongs to Parish
-
----
+- belongs to one Parish
+- optionally belongs to family (self-reference)
 
 ### Fund
+**Purpose:** Diocese financial funds (11 types in 3 groups)
 
-**Purpose:** Financial fund categories (11 funds in 3 groups)
-
-```typescript
-interface Fund {
-  _id: ObjectId;
-  name: string;               // required, unique
-  group: FundGroup;           // A, B, or C
-  description?: string;
-  isActive: boolean;          // default: true
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-enum FundGroup {
-  A = 'A',  // VBCC (Vietnam Bishops' Conference)
-  B = 'B',  // Diocese Office
-  C = 'C'   // Internal & Pastoral
-}
-
-// Virtual field (computed)
-interface FundWithBalance extends Fund {
-  balance: number;  // calculated from approved transactions
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- name: string (required)
+- code: string (unique)
+- group: string (enum: GROUP_A, GROUP_B, GROUP_C)
+- description: string
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Fund has many Transactions
+- has many Transactions
 
----
+**Virtual Fields:**
+- balance: computed from transactions (income - expense + adjustments)
 
 ### Category
+**Purpose:** Income/expense classification categories
 
-**Purpose:** Income/Expense transaction categories
-
-```typescript
-interface Category {
-  _id: ObjectId;
-  name: string;               // required
-  type: CategoryType;         // income or expense
-  description?: string;
-  isSystem: boolean;          // true for protected categories
-  isActive: boolean;          // default: true
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-enum CategoryType {
-  INCOME = 'income',
-  EXPENSE = 'expense'
-}
-
-// System categories (cannot delete/deactivate):
-// - "Employee Salary" (expense)
-// - "Asset Rental Income" (income)
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- name: string (required)
+- type: string (enum: INCOME, EXPENSE)
+- parent: ObjectId (ref: Category, self-reference)
+- isSystem: boolean (default: false, prevents deletion)
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Category has many Transactions
-
----
+- self-referential parent-child hierarchy
+- has many Transactions
 
 ### BankAccount
-
 **Purpose:** Diocese bank accounts for transfers
 
-```typescript
-interface BankAccount {
-  _id: ObjectId;
-  bankName: string;           // required
-  accountNumber: string;      // required
-  accountHolder: string;      // required
-  branch?: string;
-  isDefault: boolean;         // only one can be default
-  isActive: boolean;          // default: true
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Virtual field (computed)
-interface BankAccountWithBalance extends BankAccount {
-  balance: number;  // calculated from approved bank transfer transactions
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- bankName: string (required)
+- accountNumber: string (required)
+- accountHolder: string (required)
+- purpose: string
+- isDefault: boolean (default: false)
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- BankAccount has many Transactions (where paymentMethod = bank_transfer)
+- has many Transactions (as source/destination)
 
----
+**Virtual Fields:**
+- balance: computed from transfer transactions
 
 ### Entity
-
 **Purpose:** Transaction counterparties (sender/receiver)
 
-```typescript
-interface Entity {
-  _id: ObjectId;
-  name: string;               // required
-  phone?: string;
-  bankName?: string;          // all bank fields required together or none
-  accountNumber?: string;
-  accountHolder?: string;
-  source?: EntitySource;      // tracks auto-created entities
-  sourceId?: ObjectId;        // reference to Personnel or RentalContract
-  isActive: boolean;          // default: true
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-enum EntitySource {
-  MANUAL = 'manual',
-  PERSONNEL = 'personnel',    // auto-created from payroll
-  TENANT = 'tenant'           // auto-created from rental payment
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- name: string (required)
+- phone: string (required)
+- email: string
+- address: string
+- bankName: string
+- bankAccountNumber: string
+- bankAccountHolder: string
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Entity has many Transactions
-
----
+- has many Transactions
 
 ### Transaction
+**Purpose:** Financial transactions (income, expense, adjustment)
 
-**Purpose:** Core financial transactions (income, expense, adjustment)
-
-```typescript
-interface Transaction {
-  _id: ObjectId;
-  type: TransactionType;
-  date: Date;                 // required
-  amount: number;             // required, positive
-  fundId: ObjectId;           // required, ref: Fund
-  categoryId?: ObjectId;      // ref: Category (not for adjustment)
-  entityId: ObjectId;         // required, ref: Entity
-  paymentMethod: PaymentMethod;
-  bankAccountId?: ObjectId;   // required if paymentMethod = bank_transfer
-  description?: string;
-  attachments: string[];      // file paths
-
-  // Adjustment-specific
-  adjustmentType?: AdjustmentType;  // only for type = adjustment
-  reason?: string;                   // required for adjustment
-
-  // Workflow
-  status: TransactionStatus;
-  approvedBy?: ObjectId;      // ref: User
-  approvedAt?: Date;
-  rejectionReason?: string;
-
-  // Source tracking (for auto-created transactions)
-  source?: TransactionSource;
-  sourceId?: ObjectId;        // ref: Payroll or RentalPayment
-
-  createdBy: ObjectId;        // ref: User
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-enum TransactionType {
-  INCOME = 'income',
-  EXPENSE = 'expense',
-  ADJUSTMENT = 'adjustment'
-}
-
-enum PaymentMethod {
-  CASH = 'cash',
-  BANK_TRANSFER = 'bank_transfer'
-}
-
-enum AdjustmentType {
-  INCREASE = 'increase',
-  DECREASE = 'decrease'
-}
-
-enum TransactionStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected'
-}
-
-enum TransactionSource {
-  MANUAL = 'manual',
-  PAYROLL = 'payroll',
-  RENTAL = 'rental'
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- transactionNumber: string (auto-generated, unique)
+- type: string (enum: INCOME, EXPENSE, ADJUSTMENT)
+- fund: ObjectId (ref: Fund, required)
+- category: ObjectId (ref: Category, required)
+- entity: ObjectId (ref: Entity, required)
+- amount: number (required, positive)
+- adjustmentType: string (enum: INCREASE, DECREASE, for adjustments only)
+- adjustmentReason: string (for adjustments only)
+- paymentMethod: string (enum: CASH, TRANSFER)
+- bankAccount: ObjectId (ref: BankAccount, required if TRANSFER)
+- description: string
+- transactionDate: Date (required)
+- attachments: string[] (Cloudinary URLs)
+- status: string (enum: PENDING, APPROVED, REJECTED)
+- rejectionReason: string
+- approvedBy: ObjectId (ref: User)
+- approvedAt: Date
+- createdBy: ObjectId (ref: User, required)
+- parish: ObjectId (ref: Parish, for parish-level transactions)
+- sourceType: string (enum: MANUAL, PAYROLL, RENTAL)
+- sourceId: ObjectId (ref to Payroll or RentalPayment)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Transaction belongs to Fund
-- Transaction belongs to Category (optional)
-- Transaction belongs to Entity
-- Transaction belongs to BankAccount (optional)
-- Transaction belongs to User (createdBy, approvedBy)
+- belongs to Fund, Category, Entity
+- optionally belongs to BankAccount
+- belongs to User (creator, approver)
+- optionally linked to Payroll or RentalPayment
 
----
+### Employee
+**Purpose:** Diocese staff members
 
-### Personnel
-
-**Purpose:** Diocese employees
-
-```typescript
-interface Personnel {
-  _id: ObjectId;
-  name: string;               // required
-  phone: string;              // required
-  email?: string;
-  position?: string;
-  address?: string;
-  bankName?: string;
-  accountNumber?: string;
-  accountHolder?: string;
-  notes?: string;
-  isActive: boolean;          // default: true
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- fullName: string (required)
+- dateOfBirth: Date
+- gender: string (enum: MALE, FEMALE)
+- phone: string (required)
+- email: string
+- address: string
+- position: string (required)
+- department: string
+- bankName: string
+- bankAccountNumber: string
+- bankAccountHolder: string
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Personnel has many Contracts
-- Personnel has many PayrollItems
+- has many Contracts
+- has many PayrollItems
 
----
+### Contract
+**Purpose:** Employee labor contracts
 
-### Contract (Employment Contract)
-
-**Purpose:** Personnel employment contracts
-
-```typescript
-interface Contract {
-  _id: ObjectId;
-  personnelId: ObjectId;      // required, ref: Personnel
-  contractType: ContractType;
-  startDate: Date;            // required
-  endDate?: Date;             // required if fixed-term
-  baseSalary: number;         // required
-  allowances?: Record<string, number>;  // e.g., { "housing": 500000, "transport": 200000 }
-  notes?: string;
-  status: ContractStatus;     // computed based on dates
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-enum ContractType {
-  FIXED_TERM = 'fixed_term',
-  INDEFINITE = 'indefinite'
-}
-
-enum ContractStatus {
-  ACTIVE = 'active',
-  EXPIRED = 'expired',
-  TERMINATED = 'terminated'
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- employee: ObjectId (ref: Employee, required)
+- type: string (enum: FIXED_TERM, INDEFINITE)
+- baseSalary: number (required)
+- startDate: Date (required)
+- endDate: Date (required for FIXED_TERM)
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Contract belongs to Personnel
-
----
+- belongs to Employee
 
 ### Payroll
+**Purpose:** Monthly payroll batch
 
-**Purpose:** Monthly payroll records
-
-```typescript
-interface Payroll {
-  _id: ObjectId;
-  month: number;              // 1-12
-  year: number;
-  status: PayrollStatus;
-  items: PayrollItem[];       // embedded
-  totalAmount: number;        // sum of all net pay
-  approvedBy?: ObjectId;      // ref: User
-  approvedAt?: Date;
-  rejectionReason?: string;
-  createdBy: ObjectId;        // ref: User
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface PayrollItem {
-  personnelId: ObjectId;      // ref: Personnel
-  personnelName: string;      // denormalized for display
-  baseSalary: number;
-  allowances: number;         // sum of all allowances
-  deductions: number;
-  advances: number;
-  netPay: number;             // baseSalary + allowances - deductions - advances
-  transactionId?: ObjectId;   // ref: Transaction (created on approval)
-}
-
-enum PayrollStatus {
-  DRAFT = 'draft',
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected'
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- month: number (1-12, required)
+- year: number (required)
+- status: string (enum: DRAFT, APPROVED)
+- totalAmount: number (computed)
+- approvedBy: ObjectId (ref: User)
+- approvedAt: Date
+- createdBy: ObjectId (ref: User, required)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Payroll has many PayrollItems (embedded)
-- PayrollItem references Personnel
-- PayrollItem creates Transaction on approval
+- has many PayrollItems
+- generates many Transactions upon approval
 
----
+**Indexes:**
+- unique compound index on (month, year)
+
+### PayrollItem
+**Purpose:** Individual employee salary in payroll
+
+**Key Attributes:**
+- _id: ObjectId (PK)
+- payroll: ObjectId (ref: Payroll, required)
+- employee: ObjectId (ref: Employee, required)
+- baseSalary: number (from contract)
+- allowances: number (default: 0)
+- deductions: number (default: 0)
+- advances: number (default: 0)
+- netSalary: number (computed: base + allowances - deductions - advances)
+- createdAt: Date
+- updatedAt: Date
+
+**Relationships:**
+- belongs to Payroll
+- belongs to Employee
 
 ### Asset
+**Purpose:** Diocese property/assets
 
-**Purpose:** Diocese physical assets
-
-```typescript
-interface Asset {
-  _id: ObjectId;
-  name: string;               // required
-  type: AssetType;
-  location: string;           // required
-  area?: number;              // in square meters
-  estimatedValue?: number;
-  status: AssetStatus;
-  description?: string;
-  images: string[];           // file paths
-  isActive: boolean;          // default: true
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-enum AssetType {
-  LAND = 'land',
-  BUILDING = 'building',
-  EQUIPMENT = 'equipment',
-  VEHICLE = 'vehicle',
-  OTHER = 'other'
-}
-
-enum AssetStatus {
-  AVAILABLE = 'available',
-  RENTED = 'rented',
-  MAINTENANCE = 'maintenance'
-}
-```
+**Key Attributes:**
+- _id: ObjectId (PK)
+- name: string (required)
+- type: string (enum: LAND, BUILDING, VEHICLE, EQUIPMENT, OTHER)
+- area: number (for land/building)
+- areaUnit: string (enum: SQM, HECTARE)
+- value: number
+- address: string
+- description: string
+- status: string (enum: AVAILABLE, RENTED, IN_USE)
+- images: string[] (Cloudinary URLs)
+- documents: string[] (Cloudinary URLs)
+- createdAt: Date
+- updatedAt: Date
 
 **Relationships:**
-- Asset has many RentalContracts
-
----
+- has many RentalContracts
 
 ### RentalContract
-
 **Purpose:** Asset rental agreements
 
+**Key Attributes:**
+- _id: ObjectId (PK)
+- asset: ObjectId (ref: Asset, required)
+- tenantName: string (required)
+- tenantPhone: string (required)
+- tenantEmail: string
+- tenantAddress: string
+- tenantBankName: string
+- tenantBankAccountNumber: string
+- tenantBankAccountHolder: string
+- monthlyRent: number (required)
+- deposit: number
+- startDate: Date (required)
+- endDate: Date (required)
+- fund: ObjectId (ref: Fund, default fund for payments)
+- documents: string[] (Cloudinary URLs)
+- isActive: boolean (default: true)
+- createdAt: Date
+- updatedAt: Date
+
+**Relationships:**
+- belongs to Asset
+- belongs to Fund (default)
+- has many RentalPayments
+
+### RentalPayment
+**Purpose:** Rental payment records
+
+**Key Attributes:**
+- _id: ObjectId (PK)
+- rentalContract: ObjectId (ref: RentalContract, required)
+- paymentDate: Date (required)
+- amount: number (required)
+- paymentMethod: string (enum: CASH, TRANSFER)
+- bankAccount: ObjectId (ref: BankAccount)
+- fund: ObjectId (ref: Fund)
+- transaction: ObjectId (ref: Transaction, auto-created)
+- createdBy: ObjectId (ref: User, required)
+- createdAt: Date
+- updatedAt: Date
+
+**Relationships:**
+- belongs to RentalContract
+- creates one Transaction
+
+### AuditLog
+**Purpose:** System activity tracking
+
+**Key Attributes:**
+- _id: ObjectId (PK)
+- user: ObjectId (ref: User, required)
+- action: string (enum: CREATE, UPDATE, DELETE)
+- entityType: string (e.g., 'Transaction', 'Payroll')
+- entityId: ObjectId
+- oldValue: Mixed (JSON of previous state)
+- newValue: Mixed (JSON of new state)
+- ipAddress: string
+- userAgent: string
+- createdAt: Date
+
+**Relationships:**
+- belongs to User
+- references any entity
+
+### TypeScript Interfaces
 ```typescript
-interface RentalContract {
-  _id: ObjectId;
-  assetId: ObjectId;          // required, ref: Asset
+// Enums
+export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  DIOCESE_MANAGER = 'DIOCESE_MANAGER',
+  PARISH_PRIEST = 'PARISH_PRIEST',
+  ACCOUNTANT = 'ACCOUNTANT',
+  PARISH_SECRETARY = 'PARISH_SECRETARY',
+}
 
-  // Tenant info
-  tenantName: string;         // required
-  tenantPhone: string;        // required
-  tenantAddress: string;      // required
-  tenantEmail?: string;
-  tenantBankName?: string;
-  tenantAccountNumber?: string;
-  tenantAccountHolder?: string;
+export enum TransactionType {
+  INCOME = 'INCOME',
+  EXPENSE = 'EXPENSE',
+  ADJUSTMENT = 'ADJUSTMENT',
+}
 
-  // Contract terms
-  startDate: Date;            // required
-  endDate: Date;              // required
-  monthlyRent: number;        // required
-  deposit?: number;
-  paymentDay: number;         // 1-28, day of month rent is due
-  fundId: ObjectId;           // which fund receives rental income
+export enum TransactionStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
 
-  attachments: string[];      // contract documents
-  status: RentalContractStatus;
+export enum PaymentMethod {
+  CASH = 'CASH',
+  TRANSFER = 'TRANSFER',
+}
 
+export enum FundGroup {
+  GROUP_A = 'GROUP_A', // CBCV funds
+  GROUP_B = 'GROUP_B', // Diocese Office funds
+  GROUP_C = 'GROUP_C', // Internal funds
+}
+
+// Core interfaces
+export interface IUser {
+  _id: string;
+  email: string;
+  name: string;
+  phone?: string;
+  role: IRole | string;
+  parish?: IParish | string;
+  isActive: boolean;
+  mustChangePassword: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-enum RentalContractStatus {
-  ACTIVE = 'active',
-  EXPIRED = 'expired',
-  TERMINATED = 'terminated'
-}
-```
-
-**Relationships:**
-- RentalContract belongs to Asset
-- RentalContract belongs to Fund
-- RentalContract has many RentalPayments
-
----
-
-### RentalPayment
-
-**Purpose:** Track rental payment history
-
-```typescript
-interface RentalPayment {
-  _id: ObjectId;
-  rentalContractId: ObjectId; // ref: RentalContract
-  paymentDate: Date;
+export interface ITransaction {
+  _id: string;
+  transactionNumber: string;
+  type: TransactionType;
+  fund: IFund | string;
+  category: ICategory | string;
+  entity: IEntity | string;
   amount: number;
+  adjustmentType?: 'INCREASE' | 'DECREASE';
+  adjustmentReason?: string;
   paymentMethod: PaymentMethod;
-  bankAccountId?: ObjectId;   // diocese bank account if bank_transfer
-  notes?: string;
-  transactionId: ObjectId;    // ref: Transaction (auto-created)
-  createdBy: ObjectId;        // ref: User
+  bankAccount?: IBankAccount | string;
+  description?: string;
+  transactionDate: Date;
+  attachments: string[];
+  status: TransactionStatus;
+  rejectionReason?: string;
+  approvedBy?: IUser | string;
+  approvedAt?: Date;
+  createdBy: IUser | string;
+  parish?: IParish | string;
+  sourceType?: 'MANUAL' | 'PAYROLL' | 'RENTAL';
+  sourceId?: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 ```
 
-**Relationships:**
-- RentalPayment belongs to RentalContract
-- RentalPayment creates Transaction
+## Components
 
----
+### API Layer (Next.js API Routes)
+**Responsibility:** Handle HTTP requests, validate input, delegate to services
+**Key Interfaces:** REST endpoints under `/api/v1/*`
+**Dependencies:** Auth middleware, Services
+**Technology Stack:** Next.js API Routes, Yup validation
 
-### AuditLog
+### Auth Middleware
+**Responsibility:** Verify JWT tokens, attach user to request
+**Key Interfaces:** `withAuth()` HOC for API routes
+**Dependencies:** NextAuth.js, JWT
+**Technology Stack:** NextAuth.js v5
 
-**Purpose:** Immutable audit trail for all changes
+### RBAC Middleware
+**Responsibility:** Check user permissions for route access
+**Key Interfaces:** `withPermission(permissions[])` HOC
+**Dependencies:** Auth Middleware, Role permissions map
+**Technology Stack:** Custom middleware
 
-```typescript
-interface AuditLog {
-  _id: ObjectId;
-  action: AuditAction;
-  entityType: string;         // e.g., 'User', 'Transaction', 'Payroll'
-  entityId: ObjectId;
-  userId: ObjectId;           // who performed the action
-  userName: string;           // denormalized
-  oldValue?: Record<string, any>;
-  newValue?: Record<string, any>;
-  changedFields?: string[];   // for UPDATE actions
-  ipAddress?: string;
-  userAgent?: string;
-  timestamp: Date;            // indexed
-}
+### Service Layer
+**Responsibility:** Business logic, validation rules, cross-entity operations
+**Key Interfaces:** `TransactionService`, `PayrollService`, `AuditService`
+**Dependencies:** Mongoose models
+**Technology Stack:** TypeScript classes/modules
 
-enum AuditAction {
-  CREATE = 'CREATE',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE'
-}
+### Mongoose Models
+**Responsibility:** Data access, schema validation, virtuals, middleware
+**Key Interfaces:** Model classes with static/instance methods
+**Dependencies:** MongoDB connection
+**Technology Stack:** Mongoose 8.x
+
+### React Query Hooks (Domain-Based)
+**Responsibility:** Data fetching, caching, mutations organized by domain
+**Key Interfaces:**
+- `keys.ts` - Query key factories for cache management
+- `queries.ts` - useQuery hooks (list, detail, search)
+- `mutations.ts` - useMutation hooks (create, update, delete, approve)
+**Dependencies:** TanStack Query, API client
+**Technology Stack:** TanStack Query v5
+
+### UI Components (shadcn/ui)
+**Responsibility:** Reusable UI primitives
+**Key Interfaces:** Button, Dialog, Form, Table, etc.
+**Dependencies:** Tailwind CSS, Radix UI
+**Technology Stack:** shadcn/ui, Tailwind CSS
+
+### Feature Components
+**Responsibility:** Business-specific UI (TransactionForm, PayrollTable)
+**Key Interfaces:** Props-driven React components
+**Dependencies:** UI Components, React Query hooks, React Hook Form
+**Technology Stack:** React 19, TypeScript
+
+### Component Diagrams
+```mermaid
+graph LR
+    subgraph Pages
+        A[Dashboard Page]
+        B[Transactions Page]
+        C[Payroll Page]
+    end
+
+    subgraph Features
+        D[TransactionForm]
+        E[TransactionTable]
+        F[PayrollGenerator]
+    end
+
+    subgraph Queries
+        G[transactions/queries.ts]
+        H[transactions/mutations.ts]
+        I[funds/queries.ts]
+    end
+
+    subgraph UI
+        J[shadcn/ui Components]
+    end
+
+    A --> D
+    B --> D
+    B --> E
+    C --> F
+    D --> G
+    D --> H
+    D --> I
+    E --> G
+    D --> J
+    E --> J
+    F --> J
 ```
 
-**Note:** AuditLog documents are immutable - no updates or deletes allowed.
+## External APIs
 
----
+### Cloudinary API
+- **Purpose:** Image and document storage with CDN delivery
+- **Documentation:** https://cloudinary.com/documentation
+- **Authentication:** API Key + Secret (server-side), Upload preset (client-side)
+- **Rate Limits:** Based on plan (free: 25 credits/month)
+- **Key Operations:** Upload, transform, delete
 
-## API Specification
+### MongoDB Atlas API
+- **Purpose:** Managed database hosting
+- **Documentation:** https://www.mongodb.com/docs/atlas
+- **Authentication:** Connection string with credentials
+- **Rate Limits:** Based on cluster tier
+
+## Core Workflows
+
+### Transaction Creation and Approval
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant A as API Route
+    participant S as TransactionService
+    participant DB as MongoDB
+    participant CL as Cloudinary
+
+    U->>F: Fill transaction form
+    U->>F: Upload attachments
+    F->>CL: Upload files
+    CL-->>F: Return URLs
+    F->>A: POST /api/v1/transactions
+    A->>A: Validate with Yup
+    A->>S: createTransaction(data)
+    S->>S: Validate business rules
+    S->>DB: Save transaction (PENDING)
+    S->>DB: Create audit log
+    DB-->>S: Return transaction
+    S-->>A: Return result
+    A-->>F: 201 Created
+    F-->>U: Show success
+
+    Note over U,DB: Approval Flow
+    U->>F: Click approve
+    F->>A: PATCH /api/v1/transactions/:id/approve
+    A->>S: approveTransaction(id, userId)
+    S->>DB: Update status to APPROVED
+    S->>S: Update fund balance
+    S->>S: Update bank balance (if transfer)
+    S->>DB: Create audit log
+    DB-->>S: Return updated
+    S-->>A: Return result
+    A-->>F: 200 OK
+    F-->>U: Show approved
+```
+
+### Payroll Generation and Transaction Creation
+```mermaid
+sequenceDiagram
+    participant U as Accountant
+    participant F as Frontend
+    participant A as API Route
+    participant PS as PayrollService
+    participant TS as TransactionService
+    participant ES as EntityService
+    participant DB as MongoDB
+
+    U->>F: Select month, click Generate
+    F->>A: POST /api/v1/payrolls/generate
+    A->>PS: generatePayroll(month, year)
+    PS->>DB: Check no existing payroll
+    PS->>DB: Get employees with active contracts
+    PS->>PS: Calculate salaries
+    PS->>DB: Create Payroll + PayrollItems
+    DB-->>PS: Return payroll
+    PS-->>A: Return result
+    A-->>F: 201 Created
+    F-->>U: Show payroll for editing
+
+    Note over U,DB: After edits, Approval
+    U->>F: Click approve payroll
+    F->>A: PATCH /api/v1/payrolls/:id/approve
+    A->>PS: approvePayroll(id, userId)
+
+    loop For each PayrollItem
+        PS->>ES: ensureEntityExists(employee)
+        ES->>DB: Create Entity if not exists
+        PS->>TS: createTransaction(salaryExpense)
+        TS->>DB: Create APPROVED transaction
+    end
+
+    PS->>DB: Update payroll status
+    PS->>DB: Create audit log
+    DB-->>PS: Return updated
+    PS-->>A: Return result
+    A-->>F: 200 OK
+    F-->>U: Show approved + transactions
+```
+
+## REST API Spec
 
 ### API Style
-
-**REST** with Next.js API Routes
+REST with JSON payloads
 
 ### Base URL
-
-```
-/api
-```
+`/api/v1`
 
 ### Authentication
-
-**JWT** via NextAuth.js
-- Access token in HTTP-only cookie
-- Refresh token rotation enabled
-- 8-hour session duration
+JWT Bearer token via NextAuth.js session
 
 ### Common Response Format
-
 ```typescript
 // Success
 {
-  "data": T,
-  "meta"?: {
-    "total": number,
-    "page": number,
-    "limit": number
-  }
+  "success": true,
+  "data": { ... },
+  "meta": { "total": 100, "page": 1, "limit": 20 }
 }
 
 // Error
 {
+  "success": false,
   "error": {
-    "code": string,
-    "message": string,
-    "details"?: Record<string, string[]>
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input",
+    "details": [...]
   }
 }
 ```
 
 ### Endpoints
 
-#### Authentication
+#### Auth
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | /api/auth/[...nextauth] | NextAuth handlers | No |
-| GET | /api/auth/session | Get current session | Yes |
+| POST | /auth/login | Login with email/password | No |
+| POST | /auth/logout | Logout and invalidate session | Yes |
+| GET | /auth/me | Get current user info | Yes |
+| PATCH | /auth/change-password | Change password | Yes |
 
 #### Users
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/users | List users | SUPER_ADMIN |
-| GET | /api/users/:id | Get user | SUPER_ADMIN |
-| POST | /api/users | Create user | SUPER_ADMIN |
-| PUT | /api/users/:id | Update user | SUPER_ADMIN |
-| PATCH | /api/users/:id/status | Toggle active | SUPER_ADMIN |
-| POST | /api/users/:id/reset-password | Reset password | SUPER_ADMIN |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /users | List users (paginated) | Yes | SUPER_ADMIN |
+| POST | /users | Create user | Yes | SUPER_ADMIN |
+| GET | /users/:id | Get user details | Yes | SUPER_ADMIN |
+| PATCH | /users/:id | Update user | Yes | SUPER_ADMIN |
+| DELETE | /users/:id | Deactivate user | Yes | SUPER_ADMIN |
+| POST | /users/:id/reset-password | Reset password | Yes | SUPER_ADMIN |
 
 #### Parishes
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/parishes | List parishes | All (filtered by role) |
-| GET | /api/parishes/:id | Get parish | All |
-| POST | /api/parishes | Create parish | SUPER_ADMIN, MANAGER_PRIEST |
-| PUT | /api/parishes/:id | Update parish | SUPER_ADMIN, MANAGER_PRIEST, own PARISH_PRIEST |
-| DELETE | /api/parishes/:id | Soft delete | SUPER_ADMIN |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /parishes | List parishes | Yes | All |
+| POST | /parishes | Create parish | Yes | SUPER_ADMIN, DIOCESE_MANAGER |
+| GET | /parishes/:id | Get parish details | Yes | All |
+| PATCH | /parishes/:id | Update parish | Yes | SUPER_ADMIN, DIOCESE_MANAGER |
+| DELETE | /parishes/:id | Delete parish | Yes | SUPER_ADMIN |
 
 #### Parishioners
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/parishioners | List (paginated) | All (filtered by parish) |
-| GET | /api/parishioners/:id | Get parishioner | All |
-| POST | /api/parishioners | Create | All (own parish for priests/secretaries) |
-| PUT | /api/parishioners/:id | Update | All (own parish) |
-| DELETE | /api/parishioners/:id | Soft delete | SUPER_ADMIN, MANAGER_PRIEST |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /parishioners | List parishioners | Yes | All (filtered by parish for PP/PS) |
+| POST | /parishioners | Create parishioner | Yes | PP, PS, SUPER_ADMIN |
+| GET | /parishioners/:id | Get parishioner | Yes | All |
+| PATCH | /parishioners/:id | Update parishioner | Yes | PP, PS, SUPER_ADMIN |
+| DELETE | /parishioners/:id | Delete parishioner | Yes | SUPER_ADMIN |
 
 #### Funds
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/funds | List with balances | All |
-| GET | /api/funds/:id | Get fund with balance | All |
-| POST | /api/funds | Create fund | SUPER_ADMIN, ACCOUNTANT |
-| PUT | /api/funds/:id | Update fund | SUPER_ADMIN, ACCOUNTANT |
-| DELETE | /api/funds/:id | Delete (if no transactions) | SUPER_ADMIN |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /funds | List funds with balances | Yes | All |
+| POST | /funds | Create fund | Yes | SUPER_ADMIN, ACCOUNTANT |
+| GET | /funds/:id | Get fund with balance | Yes | All |
+| PATCH | /funds/:id | Update fund | Yes | SUPER_ADMIN, ACCOUNTANT |
 
 #### Categories
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/categories | List categories | All |
-| GET | /api/categories?type=income | Filter by type | All |
-| POST | /api/categories | Create | SUPER_ADMIN, ACCOUNTANT |
-| PUT | /api/categories/:id | Update (non-system) | SUPER_ADMIN, ACCOUNTANT |
-| DELETE | /api/categories/:id | Delete (non-system, no transactions) | SUPER_ADMIN |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /categories | List categories | Yes | All |
+| POST | /categories | Create category | Yes | ACCOUNTANT, SUPER_ADMIN |
+| PATCH | /categories/:id | Update category | Yes | ACCOUNTANT, SUPER_ADMIN |
+| DELETE | /categories/:id | Delete category | Yes | SUPER_ADMIN |
 
 #### Bank Accounts
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/bank-accounts | List with balances | All |
-| POST | /api/bank-accounts | Create | SUPER_ADMIN, ACCOUNTANT |
-| PUT | /api/bank-accounts/:id | Update | SUPER_ADMIN, ACCOUNTANT |
-| DELETE | /api/bank-accounts/:id | Delete (if no transactions) | SUPER_ADMIN |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /bank-accounts | List accounts with balances | Yes | ACCOUNTANT, SUPER_ADMIN, DM |
+| POST | /bank-accounts | Create account | Yes | ACCOUNTANT, SUPER_ADMIN |
+| PATCH | /bank-accounts/:id | Update account | Yes | ACCOUNTANT, SUPER_ADMIN |
 
-#### Entities (Sender/Receiver)
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/entities | List entities | All |
-| GET | /api/entities/search?q=term | Search by name/phone | All |
-| POST | /api/entities | Create | All |
-| PUT | /api/entities/:id | Update | All |
-| DELETE | /api/entities/:id | Delete (if no transactions) | SUPER_ADMIN, ACCOUNTANT |
+#### Entities
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /entities | List/search entities | Yes | All |
+| POST | /entities | Create entity | Yes | All |
+| PATCH | /entities/:id | Update entity | Yes | ACCOUNTANT, SUPER_ADMIN |
 
 #### Transactions
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/transactions | List (filtered, paginated) | All |
-| GET | /api/transactions/:id | Get transaction | All |
-| POST | /api/transactions | Create transaction | All |
-| PUT | /api/transactions/:id | Update (if pending) | Creator or SUPER_ADMIN |
-| DELETE | /api/transactions/:id | Delete (if pending) | Creator or SUPER_ADMIN |
-| POST | /api/transactions/:id/approve | Approve | SUPER_ADMIN, MANAGER_PRIEST |
-| POST | /api/transactions/:id/reject | Reject | SUPER_ADMIN, MANAGER_PRIEST |
-| POST | /api/transactions/:id/unapprove | Unapprove | SUPER_ADMIN, MANAGER_PRIEST |
-| POST | /api/transactions/bulk-approve | Bulk approve | SUPER_ADMIN, MANAGER_PRIEST |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /transactions | List transactions (filtered) | Yes | All (filtered by parish) |
+| POST | /transactions | Create transaction | Yes | All (role-based limits) |
+| GET | /transactions/:id | Get transaction | Yes | All |
+| PATCH | /transactions/:id | Update transaction | Yes | Creator (if PENDING) |
+| DELETE | /transactions/:id | Delete transaction | Yes | Creator (if PENDING) |
+| PATCH | /transactions/:id/approve | Approve transaction | Yes | SUPER_ADMIN, DM |
+| PATCH | /transactions/:id/reject | Reject transaction | Yes | SUPER_ADMIN, DM |
+| PATCH | /transactions/:id/cancel-approval | Cancel approval | Yes | SUPER_ADMIN, DM |
+| GET | /transactions/export | Export to CSV | Yes | ACCOUNTANT, SUPER_ADMIN |
 
-#### Personnel
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/personnel | List personnel | SUPER_ADMIN, ACCOUNTANT |
-| GET | /api/personnel/:id | Get with contracts | SUPER_ADMIN, ACCOUNTANT |
-| POST | /api/personnel | Create | SUPER_ADMIN, ACCOUNTANT |
-| PUT | /api/personnel/:id | Update | SUPER_ADMIN, ACCOUNTANT |
-| DELETE | /api/personnel/:id | Soft delete | SUPER_ADMIN |
+#### Employees
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /employees | List employees | Yes | ACCOUNTANT, SUPER_ADMIN, DM |
+| POST | /employees | Create employee | Yes | ACCOUNTANT, SUPER_ADMIN |
+| GET | /employees/:id | Get employee | Yes | ACCOUNTANT, SUPER_ADMIN, DM |
+| PATCH | /employees/:id | Update employee | Yes | ACCOUNTANT, SUPER_ADMIN |
 
 #### Contracts
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/personnel/:id/contracts | List contracts | SUPER_ADMIN, ACCOUNTANT |
-| POST | /api/personnel/:id/contracts | Create contract | SUPER_ADMIN, ACCOUNTANT |
-| PUT | /api/contracts/:id | Update contract | SUPER_ADMIN, ACCOUNTANT |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /employees/:id/contracts | List contracts | Yes | ACCOUNTANT, SUPER_ADMIN |
+| POST | /employees/:id/contracts | Create contract | Yes | ACCOUNTANT, SUPER_ADMIN |
+| PATCH | /contracts/:id | Update contract | Yes | ACCOUNTANT, SUPER_ADMIN |
 
-#### Payroll
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/payroll | List payrolls | SUPER_ADMIN, MANAGER_PRIEST, ACCOUNTANT |
-| GET | /api/payroll/:id | Get payroll detail | SUPER_ADMIN, MANAGER_PRIEST, ACCOUNTANT |
-| POST | /api/payroll/generate | Generate for month/year | ACCOUNTANT |
-| PUT | /api/payroll/:id | Update items (if draft) | ACCOUNTANT |
-| POST | /api/payroll/:id/submit | Submit for approval | ACCOUNTANT |
-| POST | /api/payroll/:id/approve | Approve (creates transactions) | SUPER_ADMIN, MANAGER_PRIEST |
-| POST | /api/payroll/:id/reject | Reject | SUPER_ADMIN, MANAGER_PRIEST |
+#### Payrolls
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /payrolls | List payrolls | Yes | ACCOUNTANT, SUPER_ADMIN, DM |
+| POST | /payrolls/generate | Generate payroll | Yes | ACCOUNTANT |
+| GET | /payrolls/:id | Get payroll with items | Yes | ACCOUNTANT, SUPER_ADMIN, DM |
+| PATCH | /payrolls/:id/items | Update payroll items | Yes | ACCOUNTANT (if DRAFT) |
+| PATCH | /payrolls/:id/approve | Approve payroll | Yes | SUPER_ADMIN, DM |
 
 #### Assets
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/assets | List assets | All |
-| GET | /api/assets/:id | Get asset | All |
-| POST | /api/assets | Create | SUPER_ADMIN, ACCOUNTANT |
-| PUT | /api/assets/:id | Update | SUPER_ADMIN, ACCOUNTANT |
-| DELETE | /api/assets/:id | Delete (if no active contract) | SUPER_ADMIN |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /assets | List assets | Yes | ACCOUNTANT, SUPER_ADMIN, DM, PP |
+| POST | /assets | Create asset | Yes | ACCOUNTANT, SUPER_ADMIN |
+| GET | /assets/:id | Get asset | Yes | All |
+| PATCH | /assets/:id | Update asset | Yes | ACCOUNTANT, SUPER_ADMIN |
+| DELETE | /assets/:id | Delete asset | Yes | SUPER_ADMIN |
 
 #### Rental Contracts
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/rental-contracts | List contracts | All |
-| GET | /api/rental-contracts/:id | Get with payments | All |
-| POST | /api/rental-contracts | Create | SUPER_ADMIN, ACCOUNTANT |
-| PUT | /api/rental-contracts/:id | Update (limited fields) | SUPER_ADMIN, ACCOUNTANT |
-| POST | /api/rental-contracts/:id/terminate | Terminate | SUPER_ADMIN |
-| POST | /api/rental-contracts/:id/payments | Record payment | All |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /rental-contracts | List contracts | Yes | ACCOUNTANT, SUPER_ADMIN, DM |
+| POST | /rental-contracts | Create contract | Yes | ACCOUNTANT, SUPER_ADMIN |
+| GET | /rental-contracts/:id | Get contract | Yes | All |
+| PATCH | /rental-contracts/:id | Update contract | Yes | ACCOUNTANT, SUPER_ADMIN |
+| POST | /rental-contracts/:id/payments | Record payment | Yes | ACCOUNTANT |
 
-#### Audit Log
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/audit-log | List logs (filtered, paginated) | SUPER_ADMIN |
-| GET | /api/audit-log/:id | Get log detail | SUPER_ADMIN |
+#### Audit Logs
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /audit-logs | List audit logs | Yes | SUPER_ADMIN |
+| GET | /audit-logs/:id | Get audit log detail | Yes | SUPER_ADMIN |
 
 #### Dashboard
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | /api/dashboard/stats | Get role-based stats | All |
-| GET | /api/dashboard/recent-transactions | Recent transactions | All |
+| Method | Endpoint | Description | Auth | Roles |
+|--------|----------|-------------|------|-------|
+| GET | /dashboard/stats | Get dashboard stats | Yes | All (role-filtered) |
+| GET | /dashboard/pending | Get pending approvals | Yes | SUPER_ADMIN, DM |
 
-#### File Upload
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| POST | /api/upload | Upload file | All |
-| GET | /api/files/:filename | Get file | All |
-| DELETE | /api/files/:filename | Delete file | SUPER_ADMIN |
+## Database Schema
 
----
+### Collections Overview
 
-## Components
+#### users
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| _id | ObjectId | PK | Primary key |
+| email | String | unique, required | Login email |
+| passwordHash | String | required | Bcrypt hash |
+| name | String | required | Display name |
+| phone | String | | Contact phone |
+| role | ObjectId | ref: roles | User role |
+| parish | ObjectId | ref: parishes | Assigned parish |
+| isActive | Boolean | default: true | Account status |
+| mustChangePassword | Boolean | default: false | Force password change |
+| createdAt | Date | | Auto timestamp |
+| updatedAt | Date | | Auto timestamp |
 
-### Component Architecture
+#### transactions
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| _id | ObjectId | PK | Primary key |
+| transactionNumber | String | unique | Auto-generated code |
+| type | String | enum | INCOME/EXPENSE/ADJUSTMENT |
+| fund | ObjectId | ref: funds, required | Associated fund |
+| category | ObjectId | ref: categories, required | Classification |
+| entity | ObjectId | ref: entities, required | Counterparty |
+| amount | Number | required, min: 0 | Transaction amount |
+| adjustmentType | String | enum | INCREASE/DECREASE |
+| adjustmentReason | String | | Reason for adjustment |
+| paymentMethod | String | enum, required | CASH/TRANSFER |
+| bankAccount | ObjectId | ref: bank_accounts | For transfers |
+| description | String | | Transaction notes |
+| transactionDate | Date | required | When occurred |
+| attachments | [String] | | Cloudinary URLs |
+| status | String | enum, default: PENDING | Approval status |
+| rejectionReason | String | | If rejected |
+| approvedBy | ObjectId | ref: users | Approver |
+| approvedAt | Date | | Approval timestamp |
+| createdBy | ObjectId | ref: users, required | Creator |
+| parish | ObjectId | ref: parishes | For parish transactions |
+| sourceType | String | enum | MANUAL/PAYROLL/RENTAL |
+| sourceId | ObjectId | | Reference to source |
+| createdAt | Date | | Auto timestamp |
+| updatedAt | Date | | Auto timestamp |
 
+### Indexes
+```javascript
+// users
+{ email: 1 } // unique
+{ role: 1 }
+{ parish: 1 }
+
+// transactions
+{ transactionNumber: 1 } // unique
+{ type: 1, status: 1 }
+{ fund: 1 }
+{ category: 1 }
+{ entity: 1 }
+{ transactionDate: -1 }
+{ status: 1, createdAt: -1 }
+{ parish: 1 }
+{ createdBy: 1 }
+{ sourceType: 1, sourceId: 1 }
+
+// payrolls
+{ month: 1, year: 1 } // unique compound
+
+// audit_logs
+{ user: 1 }
+{ entityType: 1, entityId: 1 }
+{ createdAt: -1 }
+{ action: 1 }
+```
+
+### Entity Relationship Diagram
 ```mermaid
-graph TD
-    subgraph "Pages (Server Components)"
-        P1[Dashboard Page]
-        P2[Transactions Page]
-        P3[Payroll Page]
-        P4[Settings Pages]
-    end
+erDiagram
+    User ||--o{ Transaction : creates
+    User }o--|| Role : has
+    User }o--o| Parish : assigned_to
 
-    subgraph "Feature Components (Client)"
-        F1[TransactionTable]
-        F2[TransactionForm]
-        F3[ApprovalActions]
-        F4[PayrollTable]
-        F5[EntitySelect]
-    end
+    Parish ||--o{ Parishioner : contains
+    Parish ||--o{ Transaction : has
 
-    subgraph "UI Components (shadcn)"
-        U1[Button]
-        U2[Dialog/Modal]
-        U3[Form]
-        U4[Table]
-        U5[Select]
-        U6[Input]
-    end
+    Fund ||--o{ Transaction : receives
+    Category ||--o{ Transaction : classifies
+    Entity ||--o{ Transaction : participates
+    BankAccount ||--o{ Transaction : used_in
 
-    subgraph "Services"
-        S1[API Client]
-        S2[Auth Service]
-        S3[Query Hooks]
-    end
+    Employee ||--o{ Contract : has
+    Employee ||--o{ PayrollItem : receives
 
-    P1 --> F1
-    P2 --> F1
-    P2 --> F2
-    P2 --> F3
-    P3 --> F4
+    Payroll ||--o{ PayrollItem : contains
+    Payroll ||--o{ Transaction : generates
 
-    F1 --> U4
-    F2 --> U2
-    F2 --> U3
-    F5 --> U5
+    Asset ||--o{ RentalContract : leased_via
+    RentalContract ||--o{ RentalPayment : receives
+    RentalPayment ||--|| Transaction : creates
 
-    F1 --> S3
-    F2 --> S1
-    S3 --> S1
+    User ||--o{ AuditLog : performs
 ```
 
-### Core Components
-
-#### Layout Components
-| Component | Responsibility |
-|-----------|----------------|
-| `RootLayout` | App shell, providers setup |
-| `DashboardLayout` | Authenticated layout with sidebar |
-| `Sidebar` | Navigation, role-based menu |
-| `Header` | Page title, breadcrumbs, user menu |
-
-#### Data Table Components
-| Component | Responsibility |
-|-----------|----------------|
-| `DataTable` | Generic TanStack Table wrapper |
-| `DataTablePagination` | Pagination controls |
-| `DataTableFilters` | Filter panel with chips |
-| `DataTableToolbar` | Search, filters, actions |
-
-#### Form Components
-| Component | Responsibility |
-|-----------|----------------|
-| `FormModal` | Generic modal with form |
-| `EntitySelect` | Searchable select with quick-add |
-| `DateRangePicker` | Date range selection |
-| `FileUpload` | Multi-file upload with preview |
-| `MoneyInput` | Formatted currency input |
-
-#### Feature Components
-| Component | Responsibility |
-|-----------|----------------|
-| `TransactionForm` | Create/edit transaction |
-| `ApprovalActions` | Approve/Reject buttons |
-| `PayrollTable` | Editable payroll grid |
-| `BalanceCard` | Display fund/account balance |
-| `StatCard` | Dashboard statistics card |
-
----
-
-## Frontend Architecture
-
-### App Router Structure
+## Source Tree
 
 ```
-app/
-├── (auth)/
-│   ├── login/
-│   │   └── page.tsx          # Login page
-│   └── layout.tsx            # Auth layout (no sidebar)
-├── (dashboard)/
-│   ├── layout.tsx            # Dashboard layout (with sidebar)
-│   ├── page.tsx              # Dashboard home
-│   ├── parishes/
-│   │   └── page.tsx
-│   ├── parishioners/
-│   │   └── page.tsx
-│   ├── transactions/
-│   │   └── page.tsx
-│   ├── funds/
-│   │   └── page.tsx
-│   ├── categories/
-│   │   └── page.tsx
-│   ├── bank-accounts/
-│   │   └── page.tsx
-│   ├── entities/
-│   │   └── page.tsx
-│   ├── personnel/
-│   │   ├── page.tsx
-│   │   └── [id]/
-│   │       └── page.tsx      # Personnel detail with contracts
-│   ├── payroll/
-│   │   ├── page.tsx
-│   │   └── [id]/
-│   │       └── page.tsx      # Payroll detail
-│   ├── assets/
-│   │   └── page.tsx
-│   ├── rental-contracts/
-│   │   ├── page.tsx
-│   │   └── [id]/
-│   │       └── page.tsx
-│   ├── users/
-│   │   └── page.tsx
-│   ├── audit-log/
-│   │   └── page.tsx
-│   └── settings/
-│       └── page.tsx
-├── api/
-│   └── [...routes]           # API routes
-├── layout.tsx                # Root layout
-└── providers.tsx             # Client providers
+gpbmt-org/
+├── src/
+│   ├── app/                          # Next.js App Router
+│   │   ├── (auth)/                   # Auth pages group
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (dashboard)/              # Protected pages group
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx
+│   │   │   ├── parishes/
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── parishioners/
+│   │   │   │   └── page.tsx
+│   │   │   ├── finance/
+│   │   │   │   ├── funds/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── categories/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── bank-accounts/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── entities/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── transactions/
+│   │   │   │       ├── page.tsx
+│   │   │   │       └── [id]/
+│   │   │   │           └── page.tsx
+│   │   │   ├── hr/
+│   │   │   │   ├── employees/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── payrolls/
+│   │   │   │       └── page.tsx
+│   │   │   ├── administration/
+│   │   │   │   ├── assets/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── rental-contracts/
+│   │   │   │       └── page.tsx
+│   │   │   ├── system/
+│   │   │   │   ├── users/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── audit-logs/
+│   │   │   │       └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── api/
+│   │   │   ├── auth/
+│   │   │   │   └── [...nextauth]/
+│   │   │   │       └── route.ts
+│   │   │   └── v1/
+│   │   │       ├── users/
+│   │   │       │   ├── route.ts
+│   │   │       │   └── [id]/
+│   │   │       │       └── route.ts
+│   │   │       ├── parishes/
+│   │   │       │   └── route.ts
+│   │   │       ├── parishioners/
+│   │   │       │   └── route.ts
+│   │   │       ├── funds/
+│   │   │       │   └── route.ts
+│   │   │       ├── categories/
+│   │   │       │   └── route.ts
+│   │   │       ├── bank-accounts/
+│   │   │       │   └── route.ts
+│   │   │       ├── entities/
+│   │   │       │   └── route.ts
+│   │   │       ├── transactions/
+│   │   │       │   ├── route.ts
+│   │   │       │   ├── export/
+│   │   │       │   │   └── route.ts
+│   │   │       │   └── [id]/
+│   │   │       │       ├── route.ts
+│   │   │       │       ├── approve/
+│   │   │       │       │   └── route.ts
+│   │   │       │       └── reject/
+│   │   │       │           └── route.ts
+│   │   │       ├── employees/
+│   │   │       │   └── route.ts
+│   │   │       ├── payrolls/
+│   │   │       │   ├── route.ts
+│   │   │       │   └── generate/
+│   │   │       │       └── route.ts
+│   │   │       ├── assets/
+│   │   │       │   └── route.ts
+│   │   │       ├── rental-contracts/
+│   │   │       │   └── route.ts
+│   │   │       ├── audit-logs/
+│   │   │       │   └── route.ts
+│   │   │       └── dashboard/
+│   │   │           └── route.ts
+│   │   ├── globals.css
+│   │   └── layout.tsx
+│   │
+│   ├── components/
+│   │   ├── ui/                       # shadcn/ui components
+│   │   │   ├── button.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── table.tsx
+│   │   │   └── ...
+│   │   ├── layout/
+│   │   │   ├── sidebar.tsx
+│   │   │   ├── header.tsx
+│   │   │   └── breadcrumb.tsx
+│   │   ├── forms/
+│   │   │   ├── transaction-form.tsx
+│   │   │   ├── parish-form.tsx
+│   │   │   ├── employee-form.tsx
+│   │   │   └── ...
+│   │   ├── tables/
+│   │   │   ├── transactions-table.tsx
+│   │   │   ├── parishes-table.tsx
+│   │   │   └── ...
+│   │   └── shared/
+│   │       ├── entity-select.tsx
+│   │       ├── file-upload.tsx
+│   │       ├── date-range-picker.tsx
+│   │       └── status-badge.tsx
+│   │
+│   ├── queries/                      # React Query hooks (domain-based)
+│   │   ├── transactions/
+│   │   │   ├── keys.ts               # Query keys factory
+│   │   │   ├── queries.ts            # useTransactions, useTransaction
+│   │   │   ├── mutations.ts          # useCreateTransaction, useApproveTransaction
+│   │   │   └── index.ts              # Barrel export
+│   │   ├── funds/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts            # useFunds, useFund
+│   │   │   ├── mutations.ts          # useCreateFund, useUpdateFund
+│   │   │   └── index.ts
+│   │   ├── categories/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── bank-accounts/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── entities/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── parishes/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── parishioners/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── employees/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── payrolls/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── assets/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── rental-contracts/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── users/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   ├── mutations.ts
+│   │   │   └── index.ts
+│   │   ├── audit-logs/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   └── index.ts
+│   │   ├── dashboard/
+│   │   │   ├── keys.ts
+│   │   │   ├── queries.ts
+│   │   │   └── index.ts
+│   │   └── auth/
+│   │       ├── keys.ts
+│   │       ├── queries.ts            # useCurrentUser
+│   │       ├── mutations.ts          # useLogin, useLogout
+│   │       └── index.ts
+│   │
+│   ├── lib/
+│   │   ├── db/
+│   │   │   ├── connection.ts         # MongoDB connection
+│   │   │   └── models/
+│   │   │       ├── user.model.ts
+│   │   │       ├── role.model.ts
+│   │   │       ├── parish.model.ts
+│   │   │       ├── parishioner.model.ts
+│   │   │       ├── fund.model.ts
+│   │   │       ├── category.model.ts
+│   │   │       ├── bank-account.model.ts
+│   │   │       ├── entity.model.ts
+│   │   │       ├── transaction.model.ts
+│   │   │       ├── employee.model.ts
+│   │   │       ├── contract.model.ts
+│   │   │       ├── payroll.model.ts
+│   │   │       ├── payroll-item.model.ts
+│   │   │       ├── asset.model.ts
+│   │   │       ├── rental-contract.model.ts
+│   │   │       ├── rental-payment.model.ts
+│   │   │       ├── audit-log.model.ts
+│   │   │       └── index.ts
+│   │   ├── services/
+│   │   │   ├── transaction.service.ts
+│   │   │   ├── payroll.service.ts
+│   │   │   ├── audit.service.ts
+│   │   │   ├── cloudinary.service.ts
+│   │   │   └── ...
+│   │   ├── auth/
+│   │   │   ├── auth.config.ts        # NextAuth config
+│   │   │   ├── auth.ts               # Auth utilities
+│   │   │   └── rbac.ts               # RBAC middleware
+│   │   ├── validations/
+│   │   │   ├── transaction.schema.ts
+│   │   │   ├── user.schema.ts
+│   │   │   └── ...
+│   │   ├── api/
+│   │   │   ├── client.ts             # API client for React Query
+│   │   │   ├── endpoints.ts          # API endpoint constants
+│   │   │   └── types.ts              # API request/response types
+│   │   └── utils/
+│   │       ├── api-response.ts
+│   │       ├── api-error.ts
+│   │       └── helpers.ts
+│   │
+│   ├── providers/
+│   │   ├── query-provider.tsx
+│   │   ├── auth-provider.tsx
+│   │   └── theme-provider.tsx
+│   │
+│   └── types/
+│       ├── index.ts
+│       ├── api.types.ts
+│       └── models.types.ts
+│
+├── public/
+│   └── ...
+│
+├── tests/
+│   ├── unit/
+│   │   └── services/
+│   │       └── transaction.service.test.ts
+│   └── integration/
+│       └── api/
+│           └── transactions.test.ts
+│
+├── scripts/
+│   └── seed.ts                       # Database seeding
+│
+├── .env.local.example
+├── .eslintrc.json
+├── .prettierrc
+├── components.json                   # shadcn/ui config
+├── next.config.js
+├── package.json
+├── tailwind.config.ts
+├── tsconfig.json
+└── README.md
 ```
 
-### State Management
+## Query Keys Pattern
 
-**TanStack Query** for server state:
-- Automatic caching and background refresh
-- Optimistic updates for mutations
-- Query invalidation on mutations
-
-**React Context** for client state:
-- Auth context (current user, role)
-- UI context (sidebar open/close, theme)
-
-No Redux/Zustand needed for MVP scope.
-
-### TanStack Query Structure (Domain-Based)
-
-Each domain has its own folder in `/queries` with consistent structure:
-
-```
-queries/
-├── transactions/
-│   ├── keys.ts           # Query keys factory
-│   ├── queries.ts        # useQuery hooks
-│   ├── mutations.ts      # useMutation hooks
-│   └── index.ts          # Barrel export
-```
-
-**keys.ts** - Query Key Factory:
+### Keys Factory Example (transactions/keys.ts)
 ```typescript
 export const transactionKeys = {
   all: ['transactions'] as const,
@@ -1005,803 +1264,259 @@ export const transactionKeys = {
   list: (filters: TransactionFilters) => [...transactionKeys.lists(), filters] as const,
   details: () => [...transactionKeys.all, 'detail'] as const,
   detail: (id: string) => [...transactionKeys.details(), id] as const,
+  pending: () => [...transactionKeys.all, 'pending'] as const,
 };
 ```
 
-**queries.ts** - Query Hooks:
+### Queries Example (transactions/queries.ts)
 ```typescript
 import { useQuery } from '@tanstack/react-query';
 import { transactionKeys } from './keys';
-import { getTransactions, getTransaction } from '@/lib/api-client';
+import { apiClient } from '@/lib/api/client';
 
-export const useTransactions = (filters: TransactionFilters) => {
+export function useTransactions(filters: TransactionFilters) {
   return useQuery({
     queryKey: transactionKeys.list(filters),
-    queryFn: () => getTransactions(filters),
+    queryFn: () => apiClient.get('/transactions', { params: filters }),
   });
-};
+}
 
-export const useTransaction = (id: string) => {
+export function useTransaction(id: string) {
   return useQuery({
     queryKey: transactionKeys.detail(id),
-    queryFn: () => getTransaction(id),
+    queryFn: () => apiClient.get(`/transactions/${id}`),
     enabled: !!id,
   });
-};
-```
-
-**mutations.ts** - Mutation Hooks:
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { transactionKeys } from './keys';
-import { createTransaction, updateTransaction, deleteTransaction } from '@/lib/api-client';
-
-export const useCreateTransaction = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: createTransaction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() });
-    },
-  });
-};
-
-export const useUpdateTransaction = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }) => updateTransaction(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() });
-    },
-  });
-};
-
-export const useApproveTransaction = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => approveTransaction(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: fundKeys.all });  // Balance changed
-    },
-  });
-};
-```
-
-**index.ts** - Barrel Export:
-```typescript
-export * from './keys';
-export * from './queries';
-export * from './mutations';
-```
-
-**Usage in Components:**
-```typescript
-import { useTransactions, useCreateTransaction } from '@/queries/transactions';
-
-function TransactionList() {
-  const { data, isLoading } = useTransactions({ status: 'pending' });
-  const createMutation = useCreateTransaction();
-
-  const handleCreate = (data) => {
-    createMutation.mutate(data, {
-      onSuccess: () => toast.success('Transaction created'),
-    });
-  };
 }
 ```
 
-### Routing & Navigation
-
-- Next.js App Router with file-based routing
-- Middleware for auth protection
-- Role-based route guards
-- Breadcrumb generation from route segments
-
-### Key Frontend Services
-
+### Mutations Example (transactions/mutations.ts)
 ```typescript
-// lib/api-client.ts
-// Axios instance with interceptors for auth, error handling
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { transactionKeys } from './keys';
+import { fundKeys } from '../funds/keys';
+import { apiClient } from '@/lib/api/client';
 
-// hooks/use-transactions.ts
-// TanStack Query hooks for transactions CRUD
+export function useCreateTransaction() {
+  const queryClient = useQueryClient();
 
-// lib/auth.ts
-// Auth utilities, role checks
+  return useMutation({
+    mutationFn: (data: CreateTransactionInput) =>
+      apiClient.post('/transactions', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() });
+    },
+  });
+}
 
-// lib/validations/
-// Yup schemas for all forms
+export function useApproveTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiClient.patch(`/transactions/${id}/approve`),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: transactionKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: fundKeys.all });
+    },
+  });
+}
 ```
-
----
-
-## Backend Architecture
-
-### Service Layer
-
-Next.js API routes organized by resource:
-
-```
-app/api/
-├── auth/
-│   └── [...nextauth]/
-│       └── route.ts          # NextAuth handlers
-├── users/
-│   ├── route.ts              # GET (list), POST (create)
-│   └── [id]/
-│       ├── route.ts          # GET, PUT, DELETE
-│       ├── status/
-│       │   └── route.ts      # PATCH (toggle active)
-│       └── reset-password/
-│           └── route.ts      # POST
-├── transactions/
-│   ├── route.ts              # GET (list), POST (create)
-│   ├── [id]/
-│   │   ├── route.ts          # GET, PUT, DELETE
-│   │   ├── approve/
-│   │   │   └── route.ts      # POST
-│   │   ├── reject/
-│   │   │   └── route.ts      # POST
-│   │   └── unapprove/
-│   │       └── route.ts      # POST
-│   └── bulk-approve/
-│       └── route.ts          # POST
-└── ... (similar for other resources)
-```
-
-### Database Architecture
-
-**MongoDB** with Mongoose ODM:
-- Schema validation at ODM level
-- Middleware for audit logging
-- Indexes for query performance
-- Transactions for multi-document operations
-
-### Authentication Architecture
-
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant A as NextAuth
-    participant DB as MongoDB
-
-    C->>A: POST /api/auth/signin
-    A->>DB: Find user by email
-    DB-->>A: User document
-    A->>A: Verify password (bcrypt)
-    A->>A: Generate JWT
-    A-->>C: Set HTTP-only cookie
-
-    C->>A: GET /api/protected
-    A->>A: Verify JWT from cookie
-    A->>A: Check role permissions
-    A-->>C: Response or 403
-```
-
----
-
-## Database Schema
-
-### Collections
-
-#### users
-| Field | Type | Index | Description |
-|-------|------|-------|-------------|
-| _id | ObjectId | PK | Auto-generated |
-| email | String | Unique | Login email |
-| password | String | - | Bcrypt hash |
-| name | String | - | Display name |
-| phone | String | - | Contact phone |
-| role | String | Yes | Enum: Role |
-| parishId | ObjectId | Yes | Ref: parishes |
-| isActive | Boolean | Yes | Account status |
-| lastLogin | Date | - | Last login time |
-| createdAt | Date | - | Auto |
-| updatedAt | Date | - | Auto |
-
-#### parishes
-| Field | Type | Index | Description |
-|-------|------|-------|-------------|
-| _id | ObjectId | PK | Auto-generated |
-| name | String | Unique | Parish name |
-| address | String | - | Full address |
-| phone | String | - | Contact phone |
-| email | String | - | Contact email |
-| priestName | String | - | Current priest |
-| notes | String | - | Additional notes |
-| isActive | Boolean | Yes | Soft delete flag |
-| createdAt | Date | - | Auto |
-| updatedAt | Date | - | Auto |
-
-#### transactions
-| Field | Type | Index | Description |
-|-------|------|-------|-------------|
-| _id | ObjectId | PK | Auto-generated |
-| type | String | Yes | income/expense/adjustment |
-| date | Date | Yes | Transaction date |
-| amount | Number | - | Positive number |
-| fundId | ObjectId | Yes | Ref: funds |
-| categoryId | ObjectId | Yes | Ref: categories |
-| entityId | ObjectId | Yes | Ref: entities |
-| paymentMethod | String | - | cash/bank_transfer |
-| bankAccountId | ObjectId | Yes | Ref: bankaccounts |
-| description | String | - | Notes |
-| attachments | [String] | - | File paths |
-| adjustmentType | String | - | increase/decrease |
-| reason | String | - | For adjustments |
-| status | String | Yes | pending/approved/rejected |
-| approvedBy | ObjectId | - | Ref: users |
-| approvedAt | Date | - | Approval timestamp |
-| rejectionReason | String | - | If rejected |
-| source | String | - | manual/payroll/rental |
-| sourceId | ObjectId | - | Ref to source document |
-| createdBy | ObjectId | Yes | Ref: users |
-| createdAt | Date | Yes | Auto |
-| updatedAt | Date | - | Auto |
-
-### Indexes
-
-```javascript
-// transactions - compound indexes for common queries
-db.transactions.createIndex({ status: 1, createdAt: -1 })
-db.transactions.createIndex({ fundId: 1, status: 1 })
-db.transactions.createIndex({ type: 1, status: 1, date: -1 })
-db.transactions.createIndex({ createdBy: 1, status: 1 })
-
-// audit_logs - time-based queries
-db.audit_logs.createIndex({ timestamp: -1 })
-db.audit_logs.createIndex({ userId: 1, timestamp: -1 })
-db.audit_logs.createIndex({ entityType: 1, timestamp: -1 })
-
-// parishioners - parish filtering
-db.parishioners.createIndex({ parishId: 1, isActive: 1 })
-
-// payroll - unique month/year
-db.payroll.createIndex({ month: 1, year: 1 }, { unique: true })
-```
-
-### Migration Strategy
-
-**Mongoose** handles schema evolution:
-- Schema versioning via `versionKey`
-- Migration scripts in `/scripts/migrations/`
-- Run migrations in CI/CD pipeline
-- Backward-compatible changes preferred
-
----
-
-## Source Tree
-
-```
-gpbmt-org/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Auth routes (no sidebar)
-│   │   ├── login/
-│   │   └── layout.tsx
-│   ├── (dashboard)/              # Dashboard routes (with sidebar)
-│   │   ├── parishes/
-│   │   ├── parishioners/
-│   │   ├── transactions/
-│   │   ├── funds/
-│   │   ├── categories/
-│   │   ├── bank-accounts/
-│   │   ├── entities/
-│   │   ├── personnel/
-│   │   ├── payroll/
-│   │   ├── assets/
-│   │   ├── rental-contracts/
-│   │   ├── users/
-│   │   ├── audit-log/
-│   │   ├── settings/
-│   │   ├── layout.tsx
-│   │   └── page.tsx              # Dashboard home
-│   ├── api/                      # API routes
-│   │   ├── auth/
-│   │   ├── users/
-│   │   ├── parishes/
-│   │   ├── parishioners/
-│   │   ├── transactions/
-│   │   ├── funds/
-│   │   ├── categories/
-│   │   ├── bank-accounts/
-│   │   ├── entities/
-│   │   ├── personnel/
-│   │   ├── payroll/
-│   │   ├── assets/
-│   │   ├── rental-contracts/
-│   │   ├── audit-log/
-│   │   ├── dashboard/
-│   │   └── upload/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── providers.tsx
-├── components/
-│   ├── ui/                       # shadcn/ui components
-│   │   ├── button.tsx
-│   │   ├── dialog.tsx
-│   │   ├── form.tsx
-│   │   ├── input.tsx
-│   │   ├── select.tsx
-│   │   ├── table.tsx
-│   │   └── ...
-│   ├── layout/                   # Layout components
-│   │   ├── sidebar.tsx
-│   │   ├── header.tsx
-│   │   ├── breadcrumbs.tsx
-│   │   └── user-nav.tsx
-│   ├── data-table/               # Table components
-│   │   ├── data-table.tsx
-│   │   ├── pagination.tsx
-│   │   ├── filters.tsx
-│   │   └── toolbar.tsx
-│   ├── forms/                    # Form components
-│   │   ├── entity-select.tsx
-│   │   ├── date-range-picker.tsx
-│   │   ├── file-upload.tsx
-│   │   └── money-input.tsx
-│   └── features/                 # Feature-specific components
-│       ├── transactions/
-│       ├── payroll/
-│       ├── dashboard/
-│       └── ...
-├── lib/
-│   ├── db.ts                     # MongoDB connection
-│   ├── auth.ts                   # Auth utilities
-│   ├── api-client.ts             # API client setup
-│   ├── utils.ts                  # General utilities
-│   └── validations/              # Yup schemas
-│       ├── user.ts
-│       ├── transaction.ts
-│       ├── payroll.ts
-│       └── ...
-├── models/                       # Mongoose models
-│   ├── user.ts
-│   ├── parish.ts
-│   ├── parishioner.ts
-│   ├── fund.ts
-│   ├── category.ts
-│   ├── bank-account.ts
-│   ├── entity.ts
-│   ├── transaction.ts
-│   ├── personnel.ts
-│   ├── contract.ts
-│   ├── payroll.ts
-│   ├── asset.ts
-│   ├── rental-contract.ts
-│   ├── rental-payment.ts
-│   ├── audit-log.ts
-│   └── index.ts
-├── queries/                      # TanStack React Query (domain-based)
-│   ├── users/
-│   │   ├── keys.ts               # Query keys factory
-│   │   ├── queries.ts            # useQuery hooks (useUsers, useUser)
-│   │   ├── mutations.ts          # useMutation hooks (useCreateUser, etc.)
-│   │   └── index.ts              # Barrel export
-│   ├── parishes/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── parishioners/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── transactions/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── funds/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── categories/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── bank-accounts/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── entities/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── personnel/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── payroll/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── assets/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── rental-contracts/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   └── index.ts
-│   ├── audit-log/
-│   │   ├── keys.ts
-│   │   ├── queries.ts
-│   │   └── index.ts              # No mutations (read-only)
-│   └── dashboard/
-│       ├── keys.ts
-│       ├── queries.ts
-│       └── index.ts
-├── hooks/                        # Other custom React hooks
-│   ├── use-auth.ts
-│   ├── use-debounce.ts
-│   └── use-media-query.ts
-├── types/                        # TypeScript types
-│   ├── index.ts
-│   ├── api.ts
-│   └── models.ts
-├── config/
-│   ├── routes.ts                 # Route configuration
-│   ├── permissions.ts            # RBAC permissions
-│   └── constants.ts
-├── middleware.ts                 # Next.js middleware
-├── public/
-│   ├── uploads/                  # Uploaded files (MVP)
-│   └── ...
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-├── scripts/
-│   ├── seed.ts                   # Database seeding
-│   └── migrations/
-├── docs/
-│   ├── prd.md
-│   ├── architecture.md
-│   └── epics/
-├── .env.example
-├── .env.local
-├── .eslintrc.json
-├── .prettierrc
-├── next.config.js
-├── tailwind.config.ts
-├── tsconfig.json
-├── package.json
-└── pnpm-lock.yaml
-```
-
----
 
 ## Infrastructure and Deployment
 
-### Cloud Provider
-
-**Vercel** (recommended for Next.js) or **Docker on VPS**
+### Infrastructure as Code
+- **Tool:** Vercel CLI or Docker Compose
+- **Location:** `/docker` (if using Docker)
 
 ### Deployment Strategy
-
-**Option A: Vercel (Recommended)**
-- Automatic deployments from Git
-- Preview deployments for PRs
-- Edge functions for middleware
-- MongoDB Atlas for database
-
-**Option B: Docker + VPS**
-- Docker Compose for local dev
-- Docker image for production
-- Nginx reverse proxy
-- MongoDB on same VPS or Atlas
+- **Strategy:** Blue-Green via Vercel automatic deployments
+- **CI/CD Platform:** GitHub Actions + Vercel
 
 ### Environments
+- **Development:** Local with MongoDB Atlas dev cluster
+- **Staging:** Vercel Preview deployments (per PR)
+- **Production:** Vercel Production with MongoDB Atlas production cluster
 
-| Environment | Purpose | Database | URL |
-|-------------|---------|----------|-----|
-| Development | Local dev | Local MongoDB | localhost:3000 |
-| Staging | Testing | MongoDB Atlas (staging) | staging.gpbmt.org |
-| Production | Live | MongoDB Atlas (production) | gpbmt.org |
-
-### CI/CD
-
-**GitHub Actions:**
-1. On PR: Lint, Type check, Unit tests
-2. On merge to `main`: Deploy to staging
-3. On release tag: Deploy to production
-
-```yaml
-# .github/workflows/ci.yml
-name: CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v4
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm type-check
-      - run: pnpm test
+### Environment Promotion Flow
 ```
+Local Development → PR Preview (Staging) → Main Branch (Production)
+```
+
+### Rollback Strategy
+- **Primary Method:** Vercel instant rollback to previous deployment
+- **Trigger Conditions:** Error rate spike, failed health checks, manual trigger
 
 ### Environment Variables
-
 ```bash
-# .env.example
 # Database
-MONGODB_URI=mongodb://localhost:27017/gpbmt
+MONGODB_URI=mongodb+srv://...
 
 # NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key
+NEXTAUTH_URL=https://gpbmt.org
+NEXTAUTH_SECRET=...
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+CLOUDINARY_UPLOAD_PRESET=...
 
 # App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-UPLOAD_DIR=./public/uploads
-MAX_FILE_SIZE=5242880  # 5MB
+NEXT_PUBLIC_APP_URL=https://gpbmt.org
 ```
 
----
+## Error Handling Strategy
 
-## Coding Standards
+### General Approach
+- **Error Model:** Structured error responses with code, message, details
+- **Exception Hierarchy:** Custom ApiError class extending Error
 
-### General Principles
+### Logging Standards
+- **Library:** Built-in console + Vercel logs (or Pino for production)
+- **Format:** JSON structured logs
+- **Levels:** DEBUG, INFO, WARN, ERROR
 
-- **TypeScript Strict Mode:** Enable all strict checks
-- **Functional Components:** No class components
-- **Composition over Inheritance:** Use hooks, not HOCs
-- **Explicit over Implicit:** Type everything, avoid `any`
-- **Single Responsibility:** One concern per file/function
-- **DRY but not Premature:** Extract when pattern repeats 3+ times
+### Error Handling Patterns
 
-### Naming Conventions
-
-| Type | Convention | Example |
-|------|------------|---------|
-| Files (components) | kebab-case | `transaction-form.tsx` |
-| Files (utilities) | kebab-case | `format-currency.ts` |
-| Components | PascalCase | `TransactionForm` |
-| Functions | camelCase | `formatCurrency` |
-| Constants | SCREAMING_SNAKE | `MAX_FILE_SIZE` |
-| Types/Interfaces | PascalCase | `Transaction`, `IUser` |
-| Enums | PascalCase + SCREAMING values | `Role.SUPER_ADMIN` |
-| CSS classes | Tailwind utilities | `className="flex items-center"` |
-
-### Code Organization
-
-- **Co-locate related code:** Component + hook + types in same folder if tightly coupled
-- **Barrel exports:** Use `index.ts` for clean imports
-- **Separate concerns:** API logic in `/api`, UI in `/components`
-- **Shared utilities:** Only in `/lib` if used across 3+ places
-
-### Comments
-
-- **No obvious comments:** Code should be self-documenting
-- **Why, not What:** Comment explains reasoning, not mechanics
-- **JSDoc for public APIs:** Document exported functions/types
-- **TODO format:** `// TODO(username): description`
-
-### Error Handling
-
+#### API Route Errors
 ```typescript
-// API routes - always return structured errors
 try {
-  // logic
+  // handler logic
 } catch (error) {
-  console.error('[API] Error:', error);
+  if (error instanceof ApiError) {
+    return NextResponse.json(
+      { success: false, error: error.toJSON() },
+      { status: error.statusCode }
+    );
+  }
+  console.error('Unexpected error:', error);
   return NextResponse.json(
-    { error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } },
+    { success: false, error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } },
     { status: 500 }
   );
 }
 ```
 
----
+#### External API Errors (Cloudinary)
+- **Retry Policy:** 3 retries with exponential backoff
+- **Fallback:** Store file reference, retry upload in background job
 
-## Test Strategy
+#### Business Logic Errors
+- **Custom Exceptions:** ValidationError, NotFoundError, ForbiddenError, ConflictError
+- **Error Codes:** VALIDATION_ERROR, NOT_FOUND, FORBIDDEN, CONFLICT, INTERNAL_ERROR
 
-### Testing Pyramid
+## Coding Standards
 
-| Type | Coverage Target | Scope |
-|------|-----------------|-------|
-| Unit Tests | 80% | Business logic, utilities, hooks |
-| Integration Tests | 70% | API routes, database operations |
-| E2E Tests | Critical paths | Auth flow, transaction workflow |
+### Core Standards
+- **Language:** TypeScript 5.x (strict mode)
+- **Runtime:** Node.js 20.x LTS
+- **Style & Linting:** ESLint + Prettier
 
-### Test Organization
+### Naming Conventions
+| Element | Convention | Example |
+|---------|------------|---------|
+| Files (components) | kebab-case | transaction-form.tsx |
+| Files (utils) | kebab-case | api-response.ts |
+| Components | PascalCase | TransactionForm |
+| Functions | camelCase | createTransaction |
+| Constants | SCREAMING_SNAKE | MAX_FILE_SIZE |
+| Types/Interfaces | PascalCase with I prefix | ITransaction |
+| Enums | PascalCase | TransactionType |
+| Database collections | snake_case plural | transactions |
+| API routes | kebab-case | /api/v1/bank-accounts |
+| Query keys | camelCase with Keys suffix | transactionKeys |
 
-```
-tests/
-├── unit/
-│   ├── lib/
-│   │   └── format-currency.test.ts
-│   ├── hooks/
-│   │   └── use-transactions.test.ts
-│   └── components/
-│       └── transaction-form.test.tsx
-├── integration/
-│   ├── api/
-│   │   ├── transactions.test.ts
-│   │   └── payroll.test.ts
-│   └── models/
-│       └── transaction.test.ts
-└── e2e/
-    ├── auth.spec.ts
-    ├── transactions.spec.ts
-    └── payroll.spec.ts
-```
+### Critical Rules
+- **No `any` type:** Use proper typing or `unknown` with type guards
+- **Explicit return types:** All functions must have explicit return types
+- **No hardcoded values:** Use constants or environment variables
+- **Error boundaries:** Wrap page components in error boundaries
+- **Form validation:** Always validate on both client (Yup) and server (Yup)
+- **Optimistic updates:** Use TanStack Query mutations with optimistic updates for better UX
+- **Query key factories:** Always use keys.ts for query keys to ensure consistent cache invalidation
 
-### Testing Tools
+## Test Strategy and Standards
 
-| Type | Tool | Purpose |
-|------|------|---------|
-| Unit | Vitest | Fast, Vite-native runner |
-| Component | React Testing Library | Component testing |
-| Integration | Vitest + mongodb-memory-server | API testing with in-memory DB |
-| E2E | Playwright | Browser automation |
-| Mocking | MSW | API mocking for frontend tests |
+### Testing Philosophy
+- **Approach:** Test-After for MVP, prioritize critical paths
+- **Coverage Goals:** 70% for services, 50% overall
 
-### Test Commands
+### Test Types and Organization
 
-```bash
-pnpm test              # Run all unit/integration tests
-pnpm test:watch        # Watch mode
-pnpm test:coverage     # Coverage report
-pnpm test:e2e          # Run E2E tests
-pnpm test:e2e:ui       # E2E with Playwright UI
-```
+#### Unit Tests
+- **Framework:** Vitest
+- **Location:** `tests/unit/`
+- **Focus:** Service layer business logic, utility functions
 
----
+#### Integration Tests
+- **Framework:** Vitest + Supertest
+- **Scope:** API routes with mocked database
+- **Location:** `tests/integration/`
+
+### Test Data Management
+- **Strategy:** Factory functions + fixtures
+- **Fixtures:** `tests/fixtures/`
+
+### Key Test Scenarios
+1. Transaction creation with all validation rules
+2. Approval workflow state transitions
+3. Payroll generation and transaction creation
+4. RBAC permission enforcement
+5. Balance calculations
 
 ## Security
 
-### Authentication
-
-- **NextAuth.js** with Credentials provider
-- **Password hashing:** bcrypt with cost factor 12
-- **JWT tokens:** Signed, HTTP-only cookies
-- **Session duration:** 8 hours
-- **Refresh token rotation:** Enabled
-
-### Authorization (RBAC)
-
-```typescript
-// config/permissions.ts
-export const permissions = {
-  users: {
-    list: ['SUPER_ADMIN'],
-    create: ['SUPER_ADMIN'],
-    update: ['SUPER_ADMIN'],
-    delete: ['SUPER_ADMIN'],
-  },
-  transactions: {
-    list: ['*'],  // All authenticated
-    create: ['*'],
-    update: ['*'],  // Additional check: only creator or admin
-    approve: ['SUPER_ADMIN', 'MANAGER_PRIEST'],
-  },
-  // ... more resources
-};
-```
-
 ### Input Validation
+- **Library:** Yup
+- **Required Rules:** Whitelist approach, validate all input at API boundary
+- **Sanitization:** Escape HTML in user-provided strings
 
-- **Yup schemas** for all form inputs
-- **Server-side validation** in API routes
-- **Mongoose schema validation** as final check
-- **Sanitize HTML** in text fields (if any rich text)
+### Authentication & Authorization
+- **Auth Method:** JWT via NextAuth.js
+- **Session Management:** JWT stored in httpOnly cookie
+- **Token Expiry:** Access token 1 hour, refresh via session
+
+### RBAC Permissions Matrix
+| Permission | SA | DM | PP | ACC | PS |
+|------------|----|----|----|----|-----|
+| users.* | ✅ | ❌ | ❌ | ❌ | ❌ |
+| parishes.write | ✅ | ✅ | ❌ | ❌ | ❌ |
+| parishes.read | ✅ | ✅ | ✅ | ✅ | ✅ |
+| parishioners.* | ✅ | ✅ | ✅* | ❌ | ✅* |
+| transactions.approve | ✅ | ✅ | ❌ | ❌ | ❌ |
+| transactions.create | ✅ | ✅ | ✅ | ✅ | ✅ |
+| payrolls.approve | ✅ | ✅ | ❌ | ❌ | ❌ |
+| payrolls.manage | ✅ | ✅ | ❌ | ✅ | ❌ |
+| audit-logs.read | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+*Parish Priest and Parish Secretary are limited to their assigned parish
 
 ### Secrets Management
-
-- **Environment variables** for all secrets
-- **Never commit** `.env` files
-- **Vercel/hosting secrets** for production
-- **Rotate secrets** on team member departure
+- **Development:** .env.local (git-ignored)
+- **Production:** Vercel Environment Variables (encrypted)
+- **Code Requirements:** NEVER hardcode secrets, use `process.env`
 
 ### API Security
+- **Rate Limiting:** Vercel built-in or custom middleware (100 req/min)
+- **CORS Policy:** Same-origin only, no external API access
+- **HTTPS Enforcement:** Required (Vercel auto-manages)
 
-| Measure | Implementation |
-|---------|----------------|
-| Rate Limiting | Vercel Edge (50 req/10s) or custom middleware |
-| CORS | Next.js config, restrict to app domain |
-| HTTPS | Enforced (Vercel automatic, or Nginx config) |
-| CSRF | NextAuth built-in protection |
-| XSS | React escapes by default, no `dangerouslySetInnerHTML` |
-| SQL/NoSQL Injection | Mongoose parameterized queries |
+### Data Protection
+- **Encryption at Rest:** MongoDB Atlas encryption
+- **Encryption in Transit:** TLS 1.3
+- **Password Hashing:** bcrypt with salt rounds 12
+- **Sensitive Data:** Bank account numbers masked in responses
 
-### File Upload Security
+## Checklist Results Report
 
-- **File type validation:** Check MIME type and extension
-- **File size limit:** 5MB max
-- **Filename sanitization:** Remove special characters
-- **Store outside webroot:** For MVP, still in `/public/uploads` but validate access
-
----
-
-## Error Handling
-
-### Error Response Format
-
-```typescript
-interface ErrorResponse {
-  error: {
-    code: string;           // Machine-readable code
-    message: string;        // Human-readable message
-    details?: {
-      [field: string]: string[];  // Field-level errors
-    };
-  };
-}
-
-// Example
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid input data",
-    "details": {
-      "email": ["Email is required"],
-      "amount": ["Amount must be greater than 0"]
-    }
-  }
-}
-```
-
-### Error Codes
-
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| VALIDATION_ERROR | 400 | Invalid input |
-| UNAUTHORIZED | 401 | Not authenticated |
-| FORBIDDEN | 403 | Not authorized |
-| NOT_FOUND | 404 | Resource not found |
-| CONFLICT | 409 | Duplicate or conflict |
-| INTERNAL_ERROR | 500 | Server error |
-
-### Logging Strategy
-
-- **Console logging** for development
-- **Structured JSON logs** for production
-- **Log levels:** error, warn, info, debug
-- **Include:** timestamp, request ID, user ID, action
-- **Never log:** passwords, tokens, PII in plain text
-
-### Error Categories
-
-| Category | Handling |
-|----------|----------|
-| Validation | Return 400 with field details, show inline errors |
-| Business | Return 400/409 with message, show toast |
-| Auth | Return 401/403, redirect to login or show access denied |
-| System | Return 500, log full error, show generic message to user |
-
----
+Skipped - Will run after user approval
 
 ## Next Steps
 
-Architecture complete. To begin development:
-
-1. **Initialize Project:**
-   ```bash
-   pnpm create next-app gpbmt-org --typescript --tailwind --app
-   cd gpbmt-org
-   pnpm add mongoose @auth/mongodb-adapter next-auth
-   pnpm add react-hook-form yup @hookform/resolvers
-   pnpm add @tanstack/react-query @tanstack/react-table
-   npx shadcn-ui@latest init
-   ```
-
-2. **Run `*create-epic` to generate epic files** in `docs/epics/`
-
-3. **Start with Epic 1, Story 1.1:** Project Setup & Configuration
-
-4. **Track progress** in `.ai/progress.md`
+### Development
+1. Run `*create-epic` or start with Epic 1 stories
+2. Set up project repository and initial Next.js project
+3. Configure MongoDB Atlas and Cloudinary accounts
+4. Implement authentication first (Story 1.2)
